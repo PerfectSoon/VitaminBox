@@ -1,0 +1,44 @@
+# Virtual environments
+.venv/
+
+# Python bytecode / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+
+# Logs and profiling
+*.log
+logs/
+*.prof
+*.dat
+profile.*
+flamegraph.svg
+perf.data*
+
+# Test cache / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker overrides
+docker-compose.override.yml
+
+# SQL dumps
+*.sql
+
+# IDE / Editor
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+
+# Env files
+.env
