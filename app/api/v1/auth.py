@@ -7,16 +7,23 @@ from app.core.exceptions import (
     UserNotFoundError,
     InvalidCredentialsError,
 )
-from app.core.security import create_access_token
-from app.database.models import User
+from app.core.security import create_jwt
+from app.core.settings import settings
+from app.core.types import TokenType
+
 from app.services import UserService
 from app.schemas import (
     UserOut,
     UserAuth,
     UserCreate,
     Token,
+    TokenData,
 )
-from app.api.dependencies import get_current_user, get_user_service
+from app.api.dependencies import (
+    get_current_access_token,
+    get_user_service,
+    get_current_refresh_token,
+)
 
 router = APIRouter()
 
@@ -51,22 +58,34 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token = create_access_token(
+    access_token = await create_jwt(
+        token_type=TokenType.ACCESS,
         subject=str(auth_user.id),
-        role=auth_user.role.value,
+    )
+    refresh_token = await create_jwt(
+        token_type=TokenType.REFRESH,
+        subject=str(auth_user.id),
+        expires_delta=settings.REFRESH_TOKEN_EXPIRE_MINUTES,
     )
     return Token(
         access_token=access_token,
-        token_type="bearer",
-        role=auth_user.role.value,
+        refresh_token=refresh_token,
     )
 
 
-@router.get("/profile", response_model=UserOut)
+@router.get("/me", response_model=UserOut)
 async def read_profile(
-    current_user: User = Depends(get_current_user),
+    token_data: TokenData = Depends(get_current_access_token),
+    service: UserService = Depends(get_user_service),
 ):
-    return UserOut.model_validate(current_user)
+    try:
+        user = await service.get_user(int(token_data.sub))
+        return UserOut.model_validate(user)
+    except UserNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str("Пользователь не авторизован"),
+        )
 
 
 @router.get("/profile/{user_id}", response_model=UserOut)
@@ -78,5 +97,27 @@ async def read_profile_by_id(
         return await service.get_user(user_id)
     except UserNotFoundError as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
         )
+
+
+@router.post("/refresh", response_model=Token)
+async def refresh_access_token(
+    token_data: TokenData = Depends(get_current_refresh_token),
+):
+
+    new_access_token = await create_jwt(
+        token_type=TokenType.ACCESS,
+        subject=token_data.sub,
+    )
+    new_refresh_token = await create_jwt(
+        token_type=TokenType.REFRESH,
+        subject=token_data.sub,
+        expires_delta=settings.REFRESH_TOKEN_EXPIRE_MINUTES,
+    )
+
+    return Token(
+        access_token=new_access_token,
+        refresh_token=new_refresh_token,
+    )

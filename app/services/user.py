@@ -17,7 +17,7 @@ class UserService:
     async def register(self, user_data: UserCreate) -> UserOut:
         if await self.repository.get_by_email(user_data.email):
             raise UserAlreadyExistsError()
-        hashed = get_password_hash(user_data.password)
+        hashed = await get_password_hash(user_data.password)
         u = await self.repository.create(
             {
                 "email": user_data.email,
@@ -31,7 +31,7 @@ class UserService:
         u = await self.repository.get_by_email(auth.email)
         if not u:
             raise UserNotFoundError()
-        if not verify_password(auth.password, u.hashed_password):
+        if not await verify_password(auth.password, u.hashed_password):
             raise InvalidCredentialsError()
         return UserOut.model_validate(u)
 

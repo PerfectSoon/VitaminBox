@@ -7,13 +7,12 @@ from app.core.types import UserType
 
 class Token(BaseModel):
     access_token: str
-    token_type: str
-    role: Optional[UserType]
+    refresh_token: str
+    token_type: str = "bearer"
 
 
 class TokenData(BaseModel):
     sub: Optional[str]
-    role: Optional[UserType]
 
 
 class UserBase(BaseModel):
