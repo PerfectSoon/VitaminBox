@@ -22,7 +22,6 @@ class UserService:
             {
                 "email": user_data.email,
                 "hashed_password": hashed,
-                "role": user_data.role,
             }
         )
         return UserOut.model_validate(u)

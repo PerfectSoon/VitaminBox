@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 
-app = FastAPI(title="App", lifespan=lifespan, version="1.0.0")
+app = FastAPI(title="VitaminBox", lifespan=lifespan, version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,

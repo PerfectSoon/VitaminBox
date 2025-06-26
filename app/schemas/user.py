@@ -28,7 +28,6 @@ class UserOut(UserBase):
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8)
-    role: UserType = Field(default=UserType.user)
 
 
 class UserAuth(BaseModel):

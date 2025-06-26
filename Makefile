@@ -12,7 +12,7 @@ help:
 	@echo "  make migrate-history      # Show migration history"
 	@echo "  make test                 # Run pytest in the backend container"
 
-up build:
+up:
 	docker-compose up -d
 
 up build:

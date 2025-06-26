@@ -33,7 +33,7 @@ class TestUserServiceRegister:
         fake_repo.create.return_value = orm_user
 
         svc = UserService(repository=fake_repo)
-        payload = UserCreate(email="a@b.com", password="secret123", role="user")
+        payload = UserCreate(email="a@b.com", password="secret123")
 
         out = await svc.register(payload)
 
@@ -47,10 +47,12 @@ class TestUserServiceRegister:
     async def test_register_conflict(self):
         fake_repo = AsyncMock()
         # Существующий пользователь
-        fake_repo.get_by_email.return_value = await make_fake_user(1, "a@b.com", "secret123", "user")
+        fake_repo.get_by_email.return_value = await make_fake_user(
+            1, "a@b.com", "secret123", "user"
+        )
 
         svc = UserService(repository=fake_repo)
-        payload = UserCreate(email="a@b.com", password="secret123", role="user")
+        payload = UserCreate(email="a@b.com", password="secret123")
 
         with pytest.raises(UserAlreadyExistsError):
             await svc.register(payload)
