@@ -12,14 +12,14 @@ from app.core.exceptions import (
 )
 
 
-def make_fake_user(id: int, email: str, raw_password: str, role: str):
+async def make_fake_user(id: int, email: str, raw_password: str, role: str):
 
     FakeUser = make_dataclass(
         "FakeUser",
         [("id", int), ("email", str), ("hashed_password", str), ("role", str)],
         frozen=True,
     )
-    return FakeUser(id, email, get_password_hash(raw_password), role)
+    return FakeUser(id, email, await get_password_hash(raw_password), role)
 
 
 @pytest.mark.asyncio
@@ -29,7 +29,7 @@ class TestUserServiceRegister:
         fake_repo = AsyncMock()
         fake_repo.get_by_email.return_value = None
 
-        orm_user = make_fake_user(1, "a@b.com", "secret123", "user")
+        orm_user = await make_fake_user(1, "a@b.com", "secret123", "user")
         fake_repo.create.return_value = orm_user
 
         svc = UserService(repository=fake_repo)
@@ -47,7 +47,7 @@ class TestUserServiceRegister:
     async def test_register_conflict(self):
         fake_repo = AsyncMock()
         # Существующий пользователь
-        fake_repo.get_by_email.return_value = make_fake_user(1, "a@b.com", "secret123", "user")
+        fake_repo.get_by_email.return_value = await make_fake_user(1, "a@b.com", "secret123", "user")
 
         svc = UserService(repository=fake_repo)
         payload = UserCreate(email="a@b.com", password="secret123", role="user")
@@ -61,7 +61,7 @@ class TestUserServiceAuthenticate:
 
     async def test_authenticate_success(self):
         fake_repo = AsyncMock()
-        orm_user = make_fake_user(2, "x@y.com", "passw0rd", "user")
+        orm_user = await make_fake_user(2, "x@y.com", "passw0rd", "user")
         fake_repo.get_by_email.return_value = orm_user
 
         svc = UserService(repository=fake_repo)
@@ -87,7 +87,7 @@ class TestUserServiceAuthenticate:
 
     async def test_authenticate_bad_password(self):
         fake_repo = AsyncMock()
-        orm_user = make_fake_user(3, "u@v.com", "correctpwd", "user")
+        orm_user = await make_fake_user(3, "u@v.com", "correctpwd", "user")
         fake_repo.get_by_email.return_value = orm_user
 
         svc = UserService(repository=fake_repo)
@@ -102,8 +102,8 @@ class TestUserServiceGetUser:
 
     async def test_get_user_success(self):
         fake_repo = AsyncMock()
-        # роль должна быть "user" по схеме UserOut
-        orm_user = make_fake_user(42, "z@z.com", "mypassword", "user")
+
+        orm_user = await make_fake_user(42, "z@z.com", "mypassword", "user")
         fake_repo.get_by_id.return_value = orm_user
 
         svc = UserService(repository=fake_repo)
