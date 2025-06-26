@@ -8,7 +8,7 @@ from httpx import AsyncClient
 
 from app.core.settings import Settings
 from app.main import app
-from app.database.models import Base
+from app.models.base import Base
 from app.database.connection import get_db  #
 
 settings = Settings()

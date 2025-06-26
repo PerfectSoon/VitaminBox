@@ -6,7 +6,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database.models import Base
+from app.models.base import Base
 from app.database.connection import engine
 
 from app.api.v1 import auth_router

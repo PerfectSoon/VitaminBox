@@ -4,6 +4,7 @@ from enum import Enum, unique
 @unique
 class UserType(str, Enum):
     USER = "USER"
+    ADMIN = "ADMIN"
 
 
 @unique
@@ -17,3 +18,10 @@ class OrderStatus(str, Enum):
     PENDING = "PENDING"
     CANCELED = "CANCELED"
     COMPLETED = "COMPLETED"
+
+
+@unique
+class Gender(str, Enum):
+    ANY = "ANY"
+    MALE = "MALE"
+    FEMALE = "FEMALE"
