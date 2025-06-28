@@ -10,6 +10,7 @@ from app.models.base import Base
 from app.database.connection import engine
 
 from app.api.v1 import auth_router
+from app.exceptions.handler_errors import register_errors_handler
 
 
 @asynccontextmanager
@@ -33,6 +34,7 @@ app.add_middleware(
 API_V1 = "/api/v1"
 app.include_router(auth_router, prefix=f"{API_V1}/auth", tags=["auth"])
 
+register_errors_handler(app)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
