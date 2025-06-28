@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from app.core.exceptions import (
+from app.exceptions.service_errors import (
     UserNotFoundError,
     InvalidCredentialsError,
     UserAlreadyExistsError,

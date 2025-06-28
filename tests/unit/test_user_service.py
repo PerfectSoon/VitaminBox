@@ -5,7 +5,7 @@ from dataclasses import make_dataclass
 from app.services.user import UserService
 from app.schemas import UserCreate, UserAuth, UserOut
 from app.core.security import get_password_hash
-from app.core.exceptions import (
+from app.exceptions.service_errors import (
     UserAlreadyExistsError,
     UserNotFoundError,
     InvalidCredentialsError,

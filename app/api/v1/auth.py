@@ -1,7 +1,7 @@
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import APIRouter, HTTPException, Depends, status
 
-from app.core.exceptions import (
+from app.exceptions.service_errors import (
     UserAlreadyExistsError,
     ServiceError,
     UserNotFoundError,
