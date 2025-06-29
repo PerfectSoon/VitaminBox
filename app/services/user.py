@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from app.exceptions.service_errors import (
     UserNotFoundError,
     InvalidCredentialsError,
-    UserAlreadyExistsError,
+    EntityAlreadyExistsError,
 )
 from app.core.security import get_password_hash, verify_password
 from app.repositories import UserRepository
@@ -15,19 +15,20 @@ class UserService:
     repository: UserRepository
 
     async def register(self, user_data: UserCreate) -> UserOut:
-        if await self.repository.get_by_email(user_data.email):
-            raise UserAlreadyExistsError()
+        if await self.repository.get_user_by_email(user_data.email):
+            raise EntityAlreadyExistsError()
         hashed = await get_password_hash(user_data.password)
         u = await self.repository.create(
             {
                 "email": user_data.email,
+                "name": user_data.name,
                 "hashed_password": hashed,
             }
         )
         return UserOut.model_validate(u)
 
     async def authenticate(self, auth: UserAuth) -> UserOut:
-        u = await self.repository.get_by_email(auth.email)
+        u = await self.repository.get_user_by_email(auth.email)
         if not u:
             raise UserNotFoundError()
         if not await verify_password(auth.password, u.hashed_password):
