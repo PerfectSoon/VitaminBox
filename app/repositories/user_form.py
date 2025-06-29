@@ -1,6 +1,6 @@
 from typing import List, Type
 
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -63,3 +63,13 @@ class UserFormRepository(BaseRepository[UserForm]):
                 f"Объекты {model.__name__} с ID={not_found} не найдены"
             )
         return list(objects)
+
+    async def delete_user_form(self, user_id: int) -> None:
+        query = await self.db.execute(
+            delete(UserForm).where(UserForm.user_id == user_id)
+        )
+        try:
+            await self.db.commit()
+        except Exception as e:
+            await self.db.rollback()
+            raise e

@@ -82,3 +82,13 @@ class UserFormService:
             raise ServiceError(f"Ошибка при создании анкеты: {e}")
 
         return UserFormOut.model_validate(user_form_orm)
+
+    async def delete_user_form(self, user_id: int) -> None:
+        user_form = await self.form_repository.get_user_form(user_id)
+
+        if not user_form:
+            raise UserNotFoundError(
+                f"Анкета пользователя с id {user_id} не найдена"
+            )
+
+        await self.form_repository.delete_user_form(user_form.user_id)

@@ -99,3 +99,24 @@ async def create_allergy(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         )
+
+
+@router.delete(
+    "/form",
+    summary="Удаление анкеты пользователя",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_user_form(
+    current_user: UserOut = Depends(get_current_user),
+    service: UserFormService = Depends(get_user_form_service),
+):
+    try:
+        await service.delete_user_form(current_user.id)
+    except UserNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+    except ServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        )
