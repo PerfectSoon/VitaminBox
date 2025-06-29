@@ -7,15 +7,15 @@ from jose import JWTError
 from app.exceptions.service_errors import (
     InvalidCredentialsError,
     UserNotFoundError,
-    UserAlreadyExistsError,
+    EntityAlreadyExistsError,
 )
 
 
 def register_errors_handler(app: FastAPI) -> None:
 
-    @app.exception_handler(UserAlreadyExistsError)
+    @app.exception_handler(EntityAlreadyExistsError)
     async def user_already_exists_handler(
-        request: Request, exc: UserAlreadyExistsError
+        request: Request, exc: EntityAlreadyExistsError
     ):
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
@@ -66,11 +66,14 @@ def register_errors_handler(app: FastAPI) -> None:
         if isinstance(exc, IntegrityError):
             return JSONResponse(
                 status_code=status.HTTP_409_CONFLICT,
-                content={"detail": "Database integrity error"},
+                content={
+                    "detail": "Database integrity error",
+                    "errors": str(exc),
+                },
             )
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={"detail": "Database error"},
+            content={"detail": "Database error", "errors": str(exc)},
         )
 
     @app.exception_handler(JWTError)
@@ -85,5 +88,5 @@ def register_errors_handler(app: FastAPI) -> None:
     async def global_exception_handler(request: Request, exc: Exception):
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"detail": "Internal server error"},
+            content={"detail": "Internal server error", "errors": str(exc)},
         )

@@ -14,11 +14,9 @@ class UserNotFoundError(ServiceError):
         super().__init__(message)
 
 
-class UserAlreadyExistsError(ServiceError):
+class EntityAlreadyExistsError(ServiceError):
 
-    def __init__(
-        self, message: str = "Пользователь с таким email уже существует"
-    ):
+    def __init__(self, message: str = "Такая сущность уже существует"):
         super().__init__(message)
 
 
