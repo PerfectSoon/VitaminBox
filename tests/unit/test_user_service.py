@@ -6,7 +6,7 @@ from app.services.user import UserService
 from app.schemas import UserCreate, UserAuth, UserOut
 from app.core.security import get_password_hash
 from app.exceptions.service_errors import (
-    UserAlreadyExistsError,
+    EntityAlreadyExistsError,
     UserNotFoundError,
     InvalidCredentialsError,
 )
@@ -33,7 +33,7 @@ class TestUserServiceRegister:
         fake_repo.create.return_value = orm_user
 
         svc = UserService(repository=fake_repo)
-        payload = UserCreate(email="a@b.com", password="secret123")
+        payload = UserCreate(email="a@b.com", name="nice", password="secret123")
 
         out = await svc.register(payload)
 
@@ -52,9 +52,9 @@ class TestUserServiceRegister:
         )
 
         svc = UserService(repository=fake_repo)
-        payload = UserCreate(email="a@b.com", password="secret123")
+        payload = UserCreate(email="a@b.com", name="123", password="secret123")
 
-        with pytest.raises(UserAlreadyExistsError):
+        with pytest.raises(EntityAlreadyExistsError):
             await svc.register(payload)
 
 

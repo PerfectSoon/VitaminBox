@@ -21,13 +21,11 @@ AsyncTestingSessionLocal = async_sessionmaker(
 )
 
 
-# Переопределение зависимости FastAPI
 async def override_get_db():
     async with AsyncTestingSessionLocal() as session:
         yield session
 
 
-# Создание схемы БД один раз перед всеми тестами
 @pytest.fixture(scope="session", autouse=True)
 async def prepare_database():
     async with engine_test.begin() as conn:
@@ -37,23 +35,20 @@ async def prepare_database():
         await conn.run_sync(Base.metadata.drop_all)
 
 
-# Сессия на каждый тест
 @pytest.fixture(scope="function")
 async def db_session():
     async with AsyncTestingSessionLocal() as session:
-        yield session  # Можно добавить rollback тут при необходимости
+        yield session
 
 
-# HTTP-клиент с переопределённой зависимостью
 @pytest.fixture()
 async def client():
     app.dependency_overrides[get_db] = override_get_db
     async with AsyncClient(app=app, base_url="http://test") as ac:
         yield ac
-    app.dependency_overrides.clear()  # Убираем переопределения после теста
+    app.dependency_overrides.clear()  #
 
 
-# Авторизационные заголовки (регистрация и вход)
 @pytest.fixture
 async def token_headers(client):
     await client.post(

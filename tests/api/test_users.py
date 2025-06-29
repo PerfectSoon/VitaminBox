@@ -10,6 +10,7 @@ class TestAuthRoutes:
             "/api/v1/auth/register",
             json={
                 "email": "user@example.com",
+                "name": "name",
                 "password": "supersecret",
                 "role": "user",
             },
@@ -24,6 +25,7 @@ class TestAuthRoutes:
             "/api/v1/auth/register",
             json={
                 "email": "conflict@example.com",
+                "name": "name",
                 "password": "supersecret",
                 "role": "user",
             },
@@ -32,6 +34,7 @@ class TestAuthRoutes:
             "/api/v1/auth/register",
             json={
                 "email": "conflict@example.com",
+                "name": "name",
                 "password": "supersecret",
                 "role": "user",
             },
@@ -43,6 +46,7 @@ class TestAuthRoutes:
             "/api/v1/auth/register",
             json={
                 "email": "auth@example.com",
+                "name": "name",
                 "password": "supersecret",
                 "role": "user",
             },
@@ -78,6 +82,7 @@ class TestAuthRoutes:
             "/api/v1/auth/register",
             json={
                 "email": "byid@example.com",
+                "name": "name",
                 "password": "supersecret",
                 "role": "user",
             },
