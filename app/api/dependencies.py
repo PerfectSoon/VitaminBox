@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,9 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.connection import get_db
 
 from app.core.security import decode_access_token, decode_refresh_token
-from app.repositories import UserRepository
-from app.schemas import TokenData
-from app.services import UserService
+from app.repositories import (
+    UserRepository,
+    UserFormRepository,
+    GoalRepository,
+    AllergyRepository,
+)
+from app.schemas import TokenData, UserOut
+from app.services import UserService, UserFormService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
@@ -16,6 +21,17 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 async def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:
 
     return UserService(repository=UserRepository(db))
+
+
+async def get_user_form_service(
+    db: AsyncSession = Depends(get_db),
+) -> UserFormService:
+
+    return UserFormService(
+        form_repository=UserFormRepository(db),
+        goal_repository=GoalRepository(db),
+        allergy_repository=AllergyRepository(db),
+    )
 
 
 async def get_current_access_token(
@@ -32,3 +48,11 @@ async def get_current_refresh_token(
     token_data = await decode_refresh_token(token)
 
     return token_data
+
+
+async def get_current_user(
+    token_data: TokenData = Depends(get_current_access_token),
+    service: UserService = Depends(get_user_service),
+) -> UserOut:
+
+    return await service.get_user(int(token_data.sub))
