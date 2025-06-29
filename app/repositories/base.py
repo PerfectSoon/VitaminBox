@@ -1,7 +1,11 @@
 from typing import Type, TypeVar, Generic, List, Optional
+
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import delete, true, false
+
+from app.exceptions.service_errors import ServiceError
 
 T = TypeVar("T")
 
@@ -13,6 +17,12 @@ class BaseRepository(Generic[T]):
 
     async def get_by_id(self, id: int) -> Optional[T]:
         return await self.db.get(self.model, id)
+
+    async def get_by_name(self, name: str) -> Optional[T]:
+        result = await self.db.execute(
+            select(self.model).where(self.model.name == name)
+        )
+        return result.scalars().first()
 
     async def get_all(
         self, skip: int = 0, limit: int = 100, **filters
@@ -34,6 +44,10 @@ class BaseRepository(Generic[T]):
             await self.db.commit()
             await self.db.refresh(db_obj)
             return db_obj
+        except TypeError as e:
+            raise ServiceError(f"Некорректные поля: {str(e)}")
+        except IntegrityError as e:
+            raise ServiceError(f"Ошибка целостности: {str(e)}")
         except:
             await self.db.rollback()
             raise
