@@ -2,7 +2,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import APIRouter, HTTPException, Depends, status
 
 from app.exceptions.service_errors import (
-    UserAlreadyExistsError,
+    EntityAlreadyExistsError,
     ServiceError,
     UserNotFoundError,
     InvalidCredentialsError,
@@ -20,21 +20,26 @@ from app.schemas import (
     TokenData,
 )
 from app.api.dependencies import (
-    get_current_access_token,
     get_user_service,
     get_current_refresh_token,
+    get_current_user,
 )
 
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserOut)
-async def register_owner(
+@router.post(
+    "/register",
+    response_model=UserOut,
+    summary="Регистрация нового пользователя",
+    status_code=status.HTTP_201_CREATED,
+)
+async def register_user(
     user_in: UserCreate, service: UserService = Depends(get_user_service)
 ):
     try:
         return await service.register(user_in)
-    except UserAlreadyExistsError as e:
+    except EntityAlreadyExistsError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except ServiceError as e:
         raise HTTPException(
@@ -42,7 +47,12 @@ async def register_owner(
         )
 
 
-@router.post("/login", response_model=Token)
+@router.post(
+    "/login",
+    response_model=Token,
+    summary="Авторизация и получение JWT токенов",
+    status_code=status.HTTP_200_OK,
+)
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     service: UserService = Depends(get_user_service),
@@ -73,22 +83,30 @@ async def login_for_access_token(
     )
 
 
-@router.get("/me", response_model=UserOut)
+@router.get(
+    "/me",
+    response_model=UserOut,
+    summary="Получить данные текущего авторизованного пользователя",
+    status_code=status.HTTP_200_OK,
+)
 async def read_profile(
-    token_data: TokenData = Depends(get_current_access_token),
-    service: UserService = Depends(get_user_service),
+    current_user: UserOut = Depends(get_current_user),
 ):
     try:
-        user = await service.get_user(int(token_data.sub))
-        return UserOut.model_validate(user)
+        return current_user
     except UserNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str("Пользователь не авторизован"),
+            detail=str("Пользователь не авторизован или токен не действителен"),
         )
 
 
-@router.get("/profile/{user_id}", response_model=UserOut)
+@router.get(
+    "/profile/{user_id}",
+    response_model=UserOut,
+    summary="Получить профиль пользователя по его ID",
+    status_code=status.HTTP_200_OK,
+)
 async def read_profile_by_id(
     user_id: int,
     service: UserService = Depends(get_user_service),
@@ -102,7 +120,12 @@ async def read_profile_by_id(
         )
 
 
-@router.post("/refresh", response_model=Token)
+@router.post(
+    "/refresh",
+    response_model=Token,
+    summary="Обновление пары access и refresh токенов",
+    status_code=status.HTTP_200_OK,
+)
 async def refresh_access_token(
     token_data: TokenData = Depends(get_current_refresh_token),
 ):
