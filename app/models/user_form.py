@@ -7,6 +7,7 @@ from sqlalchemy import (
     Integer,
     Enum as SAEnum,
     String,
+    Boolean,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -51,12 +52,19 @@ class UserForm(Base):
     )
     age: Mapped[int] = mapped_column(Integer, nullable=False)
     gender: Mapped[Gender] = mapped_column(SAEnum(Gender), nullable=False)
+    physical_activity: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    water_activity: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    smoking_activity: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    alcohol_activity: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    computer_activity: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    sport_activity: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    sleep_activity: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
     user: Mapped["User"] = relationship(back_populates="user_form")
 
     goals: Mapped[List["Goal"]] = relationship(
-        secondary=user_goals, back_populates="users"
+        secondary=user_goals, back_populates="users", lazy="selectin"
     )
     allergies: Mapped[List["Allergy"]] = relationship(
-        secondary=user_allergies, back_populates="users"
+        secondary=user_allergies, back_populates="users", lazy="selectin"
     )
