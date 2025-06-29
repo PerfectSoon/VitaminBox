@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.models.base import Base
 from app.database.connection import engine
 
-from app.api.v1 import auth_router
+from app.api.v1 import auth_router, user_form_router
 from app.exceptions.handler_errors import register_errors_handler
 
 
@@ -33,6 +33,9 @@ app.add_middleware(
 
 API_V1 = "/api/v1"
 app.include_router(auth_router, prefix=f"{API_V1}/auth", tags=["auth"])
+app.include_router(
+    user_form_router, prefix=f"{API_V1}/user_form", tags=["user_form"]
+)
 
 register_errors_handler(app)
 
