@@ -25,3 +25,19 @@ class Gender(str, Enum):
     ANY = "ANY"
     MALE = "MALE"
     FEMALE = "FEMALE"
+
+
+@unique
+class PhysicalActivity(str, Enum):
+    HIGH = "HIGH"
+    AVERAGE = "AVERAGE"
+    LOW = "LOW"
+    DISABLED = "DISABLED"
+
+
+@unique
+class SportActivity(str, Enum):
+    Phitness = "HIGH"
+    AVERAGE = "AVERAGE"
+    LOW = "LOW"
+    DISABLED = "DISABLED"
