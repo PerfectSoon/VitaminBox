@@ -21,7 +21,7 @@ PostgreSQL
 
 1. Склонируйте репозиторий:
    ```bash
-   git clone https://github.com/perfect-org/VitaminBox.git
+   git clone https://github.com/perfect-org/backend.git
    cd VitaminBox
    ```
 2. Скопируйте .env:
