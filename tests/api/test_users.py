@@ -15,7 +15,7 @@ class TestAuthRoutes:
                 "role": "user",
             },
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         data = response.json()
         assert data["email"] == "user@example.com"
         assert "id" in data
@@ -71,9 +71,7 @@ class TestAuthRoutes:
         assert response.status_code == 401
 
     async def test_profile_access(self, client: AsyncClient, token_headers):
-        response = await client.get(
-            "/api/v1/auth/profile", headers=token_headers
-        )
+        response = await client.get("/api/v1/auth/me", headers=token_headers)
         assert response.status_code == 200
         assert "email" in response.json()
 

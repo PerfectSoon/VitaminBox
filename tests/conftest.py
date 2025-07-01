@@ -51,18 +51,25 @@ async def client():
 
 @pytest.fixture
 async def token_headers(client):
-    await client.post(
-        "/api/v1/auth/register",
-        json={
-            "email": "token@example.com",
-            "password": "supersecret",
-            "role": "user",
-        },
+    register_data = {
+        "email": "token2@example.com",
+        "name": "asdasdm",
+        "password": "supersecret",
+        "role": "user",
+    }
+    register_response = await client.post(
+        "/api/v1/auth/register", json=register_data
     )
-    login = await client.post(
+    assert register_response.status_code == 201, "Пользователь не создан!"
+
+    login_response = await client.post(
         "/api/v1/auth/login",
-        data={"username": "token@example.com", "password": "supersecret"},
+        data={"username": "token2@example.com", "password": "supersecret"},
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
-    token = login.json()["access_token"]
+    print("Login response:", login_response.json())  # Для отладки
+    assert login_response.status_code == 200, "Ошибка авторизации!"
+    assert "access_token" in login_response.json(), "Токен не получен!"
+
+    token = login_response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
