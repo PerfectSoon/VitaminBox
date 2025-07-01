@@ -78,9 +78,11 @@ class Product(Base):
         SAEnum(Gender), default=Gender.ANY, nullable=False
     )
 
-    category: Mapped[Category] = relationship(back_populates="products")
+    category: Mapped[Category] = relationship(
+        back_populates="products", lazy="selectin"
+    )
     tags: Mapped[List[Tag]] = relationship(
-        secondary=product_tags, back_populates="products"
+        secondary=product_tags, back_populates="products", lazy="selectin"
     )
     order_items: Mapped[List["OrderItem"]] = relationship(
         back_populates="product", cascade="all, delete-orphan"
