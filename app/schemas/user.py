@@ -21,7 +21,8 @@ class UserBase(BaseModel):
     email: EmailStr
 
     @field_validator("name")
-    def validate_russian_name(self, value: str) -> str:
+    @staticmethod
+    def validate_russian_name(value: str) -> str:
         value = " ".join(value.strip().split())
 
         if not re.fullmatch(r"^[а-яА-ЯёЁ\s-]+$", value):
