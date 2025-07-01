@@ -1,6 +1,7 @@
 ## 🧴 VitaminBoxApp
 
-📦 СТЭК 
+📦 СТЭК
+
 Python 3.11
 
 FastAPI
@@ -20,7 +21,7 @@ PostgreSQL
 
 1. Склонируйте репозиторий:
    ```bash
-   git clone https://github.com/PerfectSoon/VitaminBox.git
+   git clone https://github.com/perfect-org/VitaminBox.git
    cd VitaminBox
    ```
 2. Скопируйте .env:
