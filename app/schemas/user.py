@@ -63,13 +63,14 @@ class UserOut(UserBase):
 class UserCreate(UserBase):
     password: str = Field(min_length=8)
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "name": {
                 "description": "Только имя (2-50 символов, только русские буквы)",
                 "example": "Никита",
             }
         }
+    )
 
 
 class UserAuth(BaseModel):
