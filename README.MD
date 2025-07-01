@@ -22,7 +22,7 @@ PostgreSQL
 1. Склонируйте репозиторий:
    ```bash
    git clone https://github.com/perfect-org/backend.git
-   cd VitaminBox
+   cd backend
    ```
 2. Скопируйте .env:
     ```bash
