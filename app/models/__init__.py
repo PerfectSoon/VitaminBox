@@ -1,5 +1,5 @@
 from .user import User
-from .category_product import Category, Product
+from .category_product import Category, Product, Tag, product_tags
 from .user_form import UserForm, user_goals, user_allergies
 from .goal_allergy import Goal, Allergy
 from .order import Order, OrderItem, Promo
@@ -18,4 +18,6 @@ __all__ = [
     "Promo",
     "user_goals",
     "user_allergies",
+    "Tag",
+    "product_tags",
 ]

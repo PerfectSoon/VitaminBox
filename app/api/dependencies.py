@@ -11,9 +11,13 @@ from app.repositories import (
     UserFormRepository,
     GoalRepository,
     AllergyRepository,
+    ProductRepository,
+    CategoryRepository,
+    TagRepository,
 )
 from app.schemas import TokenData, UserOut
 from app.services import UserService, UserFormService
+from app.services.product import ProductService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
@@ -31,6 +35,16 @@ async def get_user_form_service(
         form_repository=UserFormRepository(db),
         goal_repository=GoalRepository(db),
         allergy_repository=AllergyRepository(db),
+    )
+
+
+def get_product_service(
+    db: AsyncSession = Depends(get_db),
+) -> ProductService:
+    return ProductService(
+        product_repository=ProductRepository(db),
+        category_repository=CategoryRepository(db),
+        tag_repository=TagRepository(db),
     )
 
 

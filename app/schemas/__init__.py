@@ -8,6 +8,13 @@ from .user_form import (
     GoalCreate,
     GoalOut,
 )
+from .product_category import (
+    ProductOut,
+    ProductCreate,
+    ProductUpdate,
+    CategoryOut,
+    TagOut,
+)
 
 __all__ = [
     "Token",
@@ -22,4 +29,9 @@ __all__ = [
     "AllergyCreate",
     "GoalCreate",
     "GoalOut",
+    "ProductOut",
+    "ProductCreate",
+    "ProductUpdate",
+    "CategoryOut",
+    "TagOut",
 ]
