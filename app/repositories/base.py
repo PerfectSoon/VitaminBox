@@ -70,3 +70,20 @@ class BaseRepository(Generic[T]):
         if res.rowcount == 0:
             raise ValueError(f"ID={id_el} не найден")
         await self.db.commit()
+
+    async def _get_related_objects(
+        self, model: Type[T], ids: List[int]
+    ) -> List[T]:
+        if not ids:
+            return []
+
+        result = await self.db.execute(select(model).where(model.id.in_(ids)))
+        objects = result.scalars().all()
+
+        if len(objects) != len(ids):
+            found_ids = {obj.id for obj in objects}
+            not_found = set(ids) - found_ids
+            raise ValueError(
+                f"Объекты {model.__name__} с ID={not_found} не найдены"
+            )
+        return list(objects)

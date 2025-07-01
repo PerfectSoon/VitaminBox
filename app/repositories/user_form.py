@@ -47,23 +47,6 @@ class UserFormRepository(BaseRepository[UserForm]):
             await self.db.rollback()
             raise e
 
-    async def _get_related_objects(
-        self, model: Type[T], ids: List[int]
-    ) -> List[T]:
-        if not ids:
-            return []
-
-        result = await self.db.execute(select(model).where(model.id.in_(ids)))
-        objects = result.scalars().all()
-
-        if len(objects) != len(ids):
-            found_ids = {obj.id for obj in objects}
-            not_found = set(ids) - found_ids
-            raise ValueError(
-                f"Объекты {model.__name__} с ID={not_found} не найдены"
-            )
-        return list(objects)
-
     async def delete_user_form(self, user_id: int) -> None:
         query = await self.db.execute(
             delete(UserForm).where(UserForm.user_id == user_id)
