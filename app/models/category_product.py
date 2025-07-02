@@ -8,6 +8,7 @@ from sqlalchemy import (
     Numeric,
     Integer,
     Enum as SAEnum,
+    Boolean,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -76,6 +77,9 @@ class Product(Base):
     min_age: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     gender: Mapped[Gender] = mapped_column(
         SAEnum(Gender), default=Gender.ANY, nullable=False
+    )
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False
     )
 
     category: Mapped[Category] = relationship(
