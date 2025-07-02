@@ -38,3 +38,11 @@ class ProductRepository(BaseRepository[Product]):
         except Exception as e:
             await self.db.rollback()
             raise e
+
+    async def activate_product(self, product: Product) -> None:
+        try:
+            product.is_active = True
+            await self.db.commit()
+        except Exception as e:
+            await self.db.rollback()
+            raise e

@@ -1,6 +1,6 @@
 import asyncio
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 from sqlalchemy.exc import IntegrityError
 
 from app.exceptions.service_errors import (
@@ -23,6 +23,7 @@ from app.schemas import (
     CategoryOut,
     CategoryCreate,
     TagCreate,
+    TagOut,
 )
 
 
@@ -42,16 +43,20 @@ class ProductService:
         res = await self.category_repository.create(category_data.model_dump())
         return CategoryOut.model_validate(res)
 
-    async def create_tag(self, tag_data: TagCreate) -> CategoryOut:
-        if await self.category_repository.get_by_name(tag_data.name):
+    async def create_tag(self, tag_data: TagCreate) -> TagOut:
+        if await self.tag_repository.get_by_name(tag_data.name):
             raise EntityAlreadyExistsError(
                 "Тэг с таким названием уже существует"
             )
-        res = await self.category_repository.create(tag_data.model_dump())
-        return CategoryOut.model_validate(res)
+        res = await self.tag_repository.create(tag_data.model_dump())
+        return TagOut.model_validate(res)
 
-    async def get_all_product(self) -> List[ProductOut]:
-        list_products = await self.product_repository.get_all()
+    async def get_all_product(
+        self, skip: int, limit: int, filters: Optional[dict] = None
+    ) -> List[ProductOut]:
+        list_products = await self.product_repository.get_all(
+            skip=skip, limit=limit, **filters
+        )
 
         if not list_products:
             raise EntityNotFound(f"Список продуктов пуст")
@@ -69,7 +74,7 @@ class ProductService:
         )
         if not existed_category:
             raise EntityNotFound(
-                f"Категории с ID={product_data.name} не существует"
+                f"Категории с ID={product_data.category_id} не существует"
             )
         if product_data.tag_ids:
             existed_tags = await asyncio.gather(
@@ -115,3 +120,10 @@ class ProductService:
             raise EntityNotFound("Товар не найден")
 
         await self.product_repository.deactivate_product(product)
+
+    async def activate_product(self, product_id: int) -> None:
+        product = await self.product_repository.get_by_id(product_id)
+        if not product:
+            raise EntityNotFound("Товар не найден")
+
+        await self.product_repository.activate_product(product)

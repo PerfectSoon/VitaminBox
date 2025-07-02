@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Query
 
 from app.exceptions.service_errors import (
     EntityAlreadyExistsError,
@@ -11,12 +11,58 @@ from app.exceptions.service_errors import (
 from app.schemas import (
     ProductOut,
     ProductCreate,
+    TagCreate,
+    TagOut,
+    CategoryOut,
+    CategoryCreate,
 )
 
 from app.api.dependencies import get_product_service
 from app.services.product import ProductService
 
 router = APIRouter()
+
+
+# --- Категории ---
+@router.post(
+    "/categories",
+    response_model=CategoryOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Создать новую категорию",
+    responses={
+        409: {"description": "Категория с таким названием уже существует"},
+        201: {"description": "Категория успешно создана"},
+    },
+)
+async def create_category(
+    category_data: CategoryCreate,
+    product_service: ProductService = Depends(get_product_service),
+) -> CategoryOut:
+    try:
+        return await product_service.create_category(category_data)
+    except EntityAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+
+
+# --- Теги ---
+@router.post(
+    "/tags",
+    response_model=TagOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Создать новый тег",
+    responses={
+        409: {"description": "Тег с таким названием уже существует"},
+        201: {"description": "Тег успешно создан"},
+    },
+)
+async def create_tag(
+    tag_data: TagCreate,
+    product_service: ProductService = Depends(get_product_service),
+) -> TagOut:
+    try:
+        return await product_service.create_tag(tag_data)
+    except EntityAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
 
 @router.get(
@@ -29,10 +75,19 @@ router = APIRouter()
     },
 )
 async def get_all_products(
+    is_active: Optional[bool] = Query(
+        True,
+        description="Фильтр по не деактивированым товарам (по умолчанию True)",
+    ),
+    skip: int = 0,
+    limit: int = 100,
     product_service: ProductService = Depends(get_product_service),
 ) -> List[ProductOut]:
     try:
-        return await product_service.get_all_product()
+        filters = {"is_active": is_active}
+        return await product_service.get_all_product(
+            skip=skip, limit=limit, filters=filters
+        )
     except EntityNotFound as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
@@ -74,4 +129,69 @@ async def create_product(
                 "detail": "Произошла ошибка при создании товара",
                 "err": str(e),
             },
+        )
+
+
+@router.delete(
+    "/{product_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Удалить товар",
+    responses={
+        404: {"description": "Товар не найден"},
+        204: {"description": "Товар успешно удален"},
+    },
+)
+async def delete_product(
+    product_id: int,
+    product_service: ProductService = Depends(get_product_service),
+) -> None:
+    try:
+        await product_service.delete_product(product_id)
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+
+
+@router.patch(
+    "/{product_id}/deactivate",
+    status_code=status.HTTP_200_OK,
+    summary="Деактивировать товар",
+    responses={
+        404: {"description": "Товар не найден"},
+        200: {"description": "Товар успешно деактивирован"},
+    },
+)
+async def deactivate_product(
+    product_id: int,
+    product_service: ProductService = Depends(get_product_service),
+) -> dict:
+    try:
+        await product_service.deactivate_product(product_id)
+        return {"message": "Товар успешно деактивирован"}
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+
+
+@router.patch(
+    "/{product_id}/activate",
+    status_code=status.HTTP_200_OK,
+    summary="Активировать деактивированный товар",
+    responses={
+        404: {"description": "Товар не найден"},
+        200: {"description": "Деактивированный товар успешно активирован"},
+    },
+)
+async def activate_product(
+    product_id: int,
+    product_service: ProductService = Depends(get_product_service),
+) -> dict:
+    try:
+        await product_service.activate_product(product_id)
+        return {"message": "Товар успешно активирован"}
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
         )
