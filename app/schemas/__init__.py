@@ -13,7 +13,9 @@ from .product_category import (
     ProductCreate,
     ProductUpdate,
     CategoryOut,
+    CategoryCreate,
     TagOut,
+    TagCreate,
 )
 
 __all__ = [
@@ -33,5 +35,7 @@ __all__ = [
     "ProductCreate",
     "ProductUpdate",
     "CategoryOut",
+    "CategoryCreate",
     "TagOut",
+    "TagCreate",
 ]

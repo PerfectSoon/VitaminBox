@@ -9,9 +9,17 @@ class TagBase(BaseModel):
     name: str = Field(max_length=100)
 
 
+class TagCreate(TagBase):
+    pass
+
+
 class CategoryBase(BaseModel):
     name: str = Field(max_length=255)
     description: Optional[str] = Field(None, max_length=1000)
+
+
+class CategoryCreate(CategoryBase):
+    pass
 
 
 class ProductBase(BaseModel):
@@ -21,6 +29,7 @@ class ProductBase(BaseModel):
     image_url: Optional[str] = Field(None, max_length=500)
     min_age: Optional[int] = Field(None, ge=0)
     gender: Gender = Field(default=Gender.ANY)
+    is_active: bool = Field(default=True)
 
 
 class TagOut(TagBase):
