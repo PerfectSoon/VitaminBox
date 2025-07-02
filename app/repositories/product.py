@@ -30,3 +30,11 @@ class ProductRepository(BaseRepository[Product]):
         except Exception as e:
             await self.db.rollback()
             raise e
+
+    async def deactivate_product(self, product: Product) -> None:
+        try:
+            product.is_active = False
+            await self.db.commit()
+        except Exception as e:
+            await self.db.rollback()
+            raise e

@@ -1,6 +1,5 @@
 import asyncio
 from dataclasses import dataclass
-from itertools import product
 from typing import List
 from sqlalchemy.exc import IntegrityError
 
@@ -18,7 +17,13 @@ from app.repositories import (
     TagRepository,
 )
 
-from app.schemas import ProductOut, ProductCreate
+from app.schemas import (
+    ProductOut,
+    ProductCreate,
+    CategoryOut,
+    CategoryCreate,
+    TagCreate,
+)
 
 
 @dataclass(kw_only=True, frozen=True, slots=True)
@@ -27,12 +32,27 @@ class ProductService:
     category_repository: CategoryRepository
     tag_repository: TagRepository
 
+    async def create_category(
+        self, category_data: CategoryCreate
+    ) -> CategoryOut:
+        if await self.category_repository.get_by_name(category_data.name):
+            raise EntityAlreadyExistsError(
+                "Категория с таким названием уже существует"
+            )
+        res = await self.category_repository.create(category_data.model_dump())
+        return CategoryOut.model_validate(res)
+
+    async def create_tag(self, tag_data: TagCreate) -> CategoryOut:
+        if await self.category_repository.get_by_name(tag_data.name):
+            raise EntityAlreadyExistsError(
+                "Тэг с таким названием уже существует"
+            )
+        res = await self.category_repository.create(tag_data.model_dump())
+        return CategoryOut.model_validate(res)
+
     async def get_all_product(self) -> List[ProductOut]:
         list_products = await self.product_repository.get_all()
-        print(
-            "ГДЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕЕ МОИ ПРОДУКТЫ",
-            list_products,
-        )
+
         if not list_products:
             raise EntityNotFound(f"Список продуктов пуст")
         return [ProductOut.model_validate(prod) for prod in list_products]
@@ -80,3 +100,18 @@ class ProductService:
             if "foreign_key" in str(e.orig).lower():
                 raise ServiceError("Нарушение ссылочной целостности данных")
             raise ServiceError("Ошибка сохранения товара в базу данных")
+
+    async def delete_product(self, product_id: int) -> None:
+        product = await self.product_repository.get_by_id(product_id)
+
+        if not product:
+            raise UserNotFoundError(f"Продукт с id {product_id} не найден")
+
+        await self.product_repository.delete(product_id)
+
+    async def deactivate_product(self, product_id: int) -> None:
+        product = await self.product_repository.get_by_id(product_id)
+        if not product:
+            raise EntityNotFound("Товар не найден")
+
+        await self.product_repository.deactivate_product(product)
