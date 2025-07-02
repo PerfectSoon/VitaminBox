@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import List
 
 from sqlalchemy.exc import IntegrityError
 
@@ -6,6 +7,7 @@ from app.exceptions.service_errors import (
     UserNotFoundError,
     EntityAlreadyExistsError,
     ServiceError,
+    EntityNotFound,
 )
 
 from app.repositories import (
@@ -36,6 +38,20 @@ class UserFormService:
                 f"Анкета пользователя с ID={user_id} не найдена"
             )
         return UserFormOut.model_validate(user_form)
+
+    async def get_allergies(self) -> List[AllergyOut]:
+        list_allergies = await self.allergy_repository.get_all()
+        if not list_allergies:
+            raise EntityNotFound(f"Список аллергий пуст")
+        return [
+            AllergyOut.model_validate(allergy) for allergy in list_allergies
+        ]
+
+    async def get_goals(self) -> List[GoalOut]:
+        list_goals = await self.goal_repository.get_all()
+        if not list_goals:
+            raise EntityNotFound(f"Список целей пуст")
+        return [GoalOut.model_validate(goal) for goal in list_goals]
 
     async def create_goal(self, goal_data: GoalCreate) -> GoalOut:
         if await self.goal_repository.get_by_name(goal_data.name):

@@ -1,9 +1,12 @@
+from typing import List
+
 from fastapi import APIRouter, HTTPException, Depends, status
 
 from app.exceptions.service_errors import (
     EntityAlreadyExistsError,
     ServiceError,
     UserNotFoundError,
+    EntityNotFound,
 )
 from app.schemas import (
     GoalOut,
@@ -56,6 +59,46 @@ async def get_user_form(
         user_form = await service.get_user_form(current_user.id)
         return user_form
     except UserNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+
+
+@router.get(
+    "/goals",
+    response_model=List[GoalOut],
+    summary="Получить все цели",
+    responses={
+        404: {"description": "Список целей пуст"},
+        200: {"description": "Успешное получение списка целей"},
+    },
+)
+async def get_all_products(
+    service: UserFormService = Depends(get_user_form_service),
+) -> List[GoalOut]:
+    try:
+        return await service.get_goals()
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+
+
+@router.get(
+    "/allergies",
+    response_model=List[AllergyOut],
+    summary="Получить все аллергии",
+    responses={
+        404: {"description": "Список аллергий пуст"},
+        200: {"description": "Успешное получение списка аллергий"},
+    },
+)
+async def get_all_products(
+    service: UserFormService = Depends(get_user_form_service),
+) -> List[AllergyOut]:
+    try:
+        return await service.get_allergies()
+    except EntityNotFound as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
         )
