@@ -1,96 +1,22 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import Depends, HTTPException, status, APIRouter
 
+from app.api.dependencies import get_product_service
 from app.exceptions.service_errors import (
     EntityAlreadyExistsError,
-    ServiceError,
-    UserNotFoundError,
     EntityNotFound,
+    ServiceError,
 )
-
-from app.services import UserService, UserFormService
 from app.schemas import (
-    UserOut,
-    CategoryOut,
-    CategoryCreate,
+    ProductOut,
+    ProductCreate,
     TagOut,
     TagCreate,
-    ProductCreate,
-    ProductOut,
-    AllergyOut,
-    AllergyCreate,
-    GoalCreate,
-    GoalOut,
-)
-from app.api.dependencies import (
-    get_user_service,
-    get_product_service,
-    get_user_form_service,
+    CategoryOut,
+    CategoryCreate,
 )
 from app.services.product import ProductService
 
 router = APIRouter()
-
-
-# --- Пользователь ---
-@router.get(
-    "/profile/{user_id}",
-    response_model=UserOut,
-    summary="Получить профиль пользователя по его ID",
-    status_code=status.HTTP_200_OK,
-)
-async def read_profile_by_id(
-    user_id: int,
-    service: UserService = Depends(get_user_service),
-):
-    try:
-        return await service.get_user(user_id)
-    except UserNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
-
-
-# --- Категории ---
-@router.post(
-    "/categories",
-    response_model=CategoryOut,
-    status_code=status.HTTP_201_CREATED,
-    summary="Создать новую категорию",
-    responses={
-        409: {"description": "Категория с таким названием уже существует"},
-        201: {"description": "Категория успешно создана"},
-    },
-)
-async def create_category(
-    category_data: CategoryCreate,
-    product_service: ProductService = Depends(get_product_service),
-) -> CategoryOut:
-    try:
-        return await product_service.create_category(category_data)
-    except EntityAlreadyExistsError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
-
-
-# --- Теги ---
-@router.post(
-    "/tags",
-    response_model=TagOut,
-    status_code=status.HTTP_201_CREATED,
-    summary="Создать новый тег",
-    responses={
-        409: {"description": "Тег с таким названием уже существует"},
-        201: {"description": "Тег успешно создан"},
-    },
-)
-async def create_tag(
-    tag_data: TagCreate,
-    product_service: ProductService = Depends(get_product_service),
-) -> TagOut:
-    try:
-        return await product_service.create_tag(tag_data)
-    except EntityAlreadyExistsError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
 
 @router.post(
@@ -197,40 +123,40 @@ async def activate_product(
 
 
 @router.post(
-    "/create/goal",
-    response_model=GoalOut,
-    summary="Создать цель",
+    "/tags",
+    response_model=TagOut,
     status_code=status.HTTP_201_CREATED,
+    summary="Создать новый тег",
+    responses={
+        409: {"description": "Тег с таким названием уже существует"},
+        201: {"description": "Тег успешно создан"},
+    },
 )
-async def create_goal(
-    goal_in: GoalCreate,
-    service: UserFormService = Depends(get_user_form_service),
-):
+async def create_tag(
+    tag_data: TagCreate,
+    product_service: ProductService = Depends(get_product_service),
+) -> TagOut:
     try:
-        return await service.create_goal(goal_in)
+        return await product_service.create_tag(tag_data)
     except EntityAlreadyExistsError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
-    except ServiceError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-        )
 
 
 @router.post(
-    "/create/allergy",
-    response_model=AllergyOut,
-    summary="Создать аллергию",
+    "/categories",
+    response_model=CategoryOut,
     status_code=status.HTTP_201_CREATED,
+    summary="Создать новую категорию",
+    responses={
+        409: {"description": "Категория с таким названием уже существует"},
+        201: {"description": "Категория успешно создана"},
+    },
 )
-async def create_allergy(
-    allergy_in: AllergyCreate,
-    service: UserFormService = Depends(get_user_form_service),
-):
+async def create_category(
+    category_data: CategoryCreate,
+    product_service: ProductService = Depends(get_product_service),
+) -> CategoryOut:
     try:
-        return await service.create_allergy(allergy_in)
+        return await product_service.create_category(category_data)
     except EntityAlreadyExistsError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
-    except ServiceError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-        )
