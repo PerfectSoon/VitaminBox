@@ -94,7 +94,7 @@ async def create_tag(
 
 
 @router.post(
-    "/",
+    "/products",
     response_model=ProductOut,
     status_code=status.HTTP_201_CREATED,
     summary="Создать новый товар",
