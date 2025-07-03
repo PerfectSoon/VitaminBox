@@ -26,7 +26,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/create/form",
+    "/m",
     response_model=UserFormOut,
     summary="Создать анкету пользователя",
     status_code=status.HTTP_201_CREATED,
@@ -47,7 +47,7 @@ async def create_user_form(
 
 
 @router.get(
-    "/form",
+    "/",
     response_model=UserFormOut,
     summary="Просмотр анкеты пользователя",
     status_code=status.HTTP_200_OK,
@@ -106,7 +106,7 @@ async def get_all_allergies(
 
 
 @router.delete(
-    "/form",
+    "/",
     summary="Удаление анкеты пользователя",
     status_code=status.HTTP_204_NO_CONTENT,
 )
@@ -127,7 +127,7 @@ async def delete_user_form(
 
 
 @router.patch(
-    "/form",
+    "/",
     response_model=UserFormOut,
     summary="Обновить анкету пользователя",
     status_code=status.HTTP_200_OK,
