@@ -101,25 +101,6 @@ async def read_profile(
         )
 
 
-@router.get(
-    "/profile/{user_id}",
-    response_model=UserOut,
-    summary="Получить профиль пользователя по его ID",
-    status_code=status.HTTP_200_OK,
-)
-async def read_profile_by_id(
-    user_id: int,
-    service: UserService = Depends(get_user_service),
-):
-    try:
-        return await service.get_user(user_id)
-    except UserNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
-
-
 @router.post(
     "/refresh",
     response_model=Token,

@@ -1,0 +1,236 @@
+from fastapi import APIRouter, HTTPException, Depends, status
+
+from app.exceptions.service_errors import (
+    EntityAlreadyExistsError,
+    ServiceError,
+    UserNotFoundError,
+    EntityNotFound,
+)
+
+from app.services import UserService, UserFormService
+from app.schemas import (
+    UserOut,
+    CategoryOut,
+    CategoryCreate,
+    TagOut,
+    TagCreate,
+    ProductCreate,
+    ProductOut,
+    AllergyOut,
+    AllergyCreate,
+    GoalCreate,
+    GoalOut,
+)
+from app.api.dependencies import (
+    get_user_service,
+    get_product_service,
+    get_user_form_service,
+)
+from app.services.product import ProductService
+
+router = APIRouter()
+
+
+# --- Пользователь ---
+@router.get(
+    "/profile/{user_id}",
+    response_model=UserOut,
+    summary="Получить профиль пользователя по его ID",
+    status_code=status.HTTP_200_OK,
+)
+async def read_profile_by_id(
+    user_id: int,
+    service: UserService = Depends(get_user_service),
+):
+    try:
+        return await service.get_user(user_id)
+    except UserNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+# --- Категории ---
+@router.post(
+    "/categories",
+    response_model=CategoryOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Создать новую категорию",
+    responses={
+        409: {"description": "Категория с таким названием уже существует"},
+        201: {"description": "Категория успешно создана"},
+    },
+)
+async def create_category(
+    category_data: CategoryCreate,
+    product_service: ProductService = Depends(get_product_service),
+) -> CategoryOut:
+    try:
+        return await product_service.create_category(category_data)
+    except EntityAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+
+
+# --- Теги ---
+@router.post(
+    "/tags",
+    response_model=TagOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Создать новый тег",
+    responses={
+        409: {"description": "Тег с таким названием уже существует"},
+        201: {"description": "Тег успешно создан"},
+    },
+)
+async def create_tag(
+    tag_data: TagCreate,
+    product_service: ProductService = Depends(get_product_service),
+) -> TagOut:
+    try:
+        return await product_service.create_tag(tag_data)
+    except EntityAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+
+
+@router.post(
+    "/",
+    response_model=ProductOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Создать новый товар",
+    responses={
+        400: {"description": "Некорректные данные"},
+        404: {"description": "Категория или тег не найдены"},
+        409: {"description": "Товар с таким именем уже существует"},
+        500: {"description": "Ошибка сервера при создании товара"},
+    },
+)
+async def create_product(
+    product_data: ProductCreate,
+    product_service: ProductService = Depends(get_product_service),
+) -> ProductOut:
+    try:
+        return await product_service.create_product(product_data)
+    except EntityAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+    except ServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "detail": "Произошла ошибка при создании товара",
+                "err": str(e),
+            },
+        )
+
+
+@router.delete(
+    "/{product_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Удалить товар",
+    responses={
+        404: {"description": "Товар не найден"},
+        204: {"description": "Товар успешно удален"},
+    },
+)
+async def delete_product(
+    product_id: int,
+    product_service: ProductService = Depends(get_product_service),
+) -> None:
+    try:
+        await product_service.delete_product(product_id)
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+
+
+@router.patch(
+    "/{product_id}/deactivate",
+    status_code=status.HTTP_200_OK,
+    summary="Деактивировать товар",
+    responses={
+        404: {"description": "Товар не найден"},
+        200: {"description": "Товар успешно деактивирован"},
+    },
+)
+async def deactivate_product(
+    product_id: int,
+    product_service: ProductService = Depends(get_product_service),
+) -> dict:
+    try:
+        await product_service.deactivate_product(product_id)
+        return {"message": "Товар успешно деактивирован"}
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+
+
+@router.patch(
+    "/{product_id}/activate",
+    status_code=status.HTTP_200_OK,
+    summary="Активировать деактивированный товар",
+    responses={
+        404: {"description": "Товар не найден"},
+        200: {"description": "Деактивированный товар успешно активирован"},
+    },
+)
+async def activate_product(
+    product_id: int,
+    product_service: ProductService = Depends(get_product_service),
+) -> dict:
+    try:
+        await product_service.activate_product(product_id)
+        return {"message": "Товар успешно активирован"}
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+
+
+@router.post(
+    "/create/goal",
+    response_model=GoalOut,
+    summary="Создать цель",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_goal(
+    goal_in: GoalCreate,
+    service: UserFormService = Depends(get_user_form_service),
+):
+    try:
+        return await service.create_goal(goal_in)
+    except EntityAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except ServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        )
+
+
+@router.post(
+    "/create/allergy",
+    response_model=AllergyOut,
+    summary="Создать аллергию",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_allergy(
+    allergy_in: AllergyCreate,
+    service: UserFormService = Depends(get_user_form_service),
+):
+    try:
+        return await service.create_allergy(allergy_in)
+    except EntityAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except ServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        )

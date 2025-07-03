@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-from itertools import product
 
 import uvicorn
 import logging
@@ -10,7 +9,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.models.base import Base
 from app.database.connection import engine
 
-from app.api.v1 import auth_router, user_form_router, product_router
+from app.api.v1 import (
+    auth_router,
+    user_form_router,
+    product_router,
+    admin_router,
+)
 from app.exceptions.handler_errors import register_errors_handler
 
 
@@ -40,6 +44,7 @@ app.include_router(
     user_form_router, prefix=f"{API_V1}/user_form", tags=["Анкета"]
 )
 app.include_router(product_router, prefix=f"{API_V1}/product", tags=["Продукт"])
+app.include_router(admin_router, prefix=f"{API_V1}/admin", tags=["Админка"])
 
 register_errors_handler(app)
 
