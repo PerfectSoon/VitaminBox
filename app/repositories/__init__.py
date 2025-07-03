@@ -5,6 +5,9 @@ from .allergy import AllergyRepository
 from .product import ProductRepository
 from .category import CategoryRepository
 from .tag import TagRepository
+from .order_item import OrderItemRepository
+from .order import OrderRepository
+from .promo import PromoRepository
 
 __all__ = [
     "UserRepository",
@@ -14,4 +17,7 @@ __all__ = [
     "ProductRepository",
     "CategoryRepository",
     "TagRepository",
+    "OrderItemRepository",
+    "OrderRepository",
+    "PromoRepository",
 ]

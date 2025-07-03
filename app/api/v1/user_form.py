@@ -16,6 +16,7 @@ from app.schemas import (
     UserOut,
     UserFormCreate,
     UserFormOut,
+    UserFormUpdate,
 )
 from app.services import UserFormService
 
@@ -162,4 +163,45 @@ async def delete_user_form(
     except ServiceError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        )
+
+
+@router.patch(
+    "/form",
+    response_model=UserFormOut,
+    summary="Обновить анкету пользователя",
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "Анкета успешно обновлена"},
+        404: {"description": "Анкета не найдена"},
+        400: {"description": "Некорректные данные"},
+        422: {"description": "Ошибка валидации данных"},
+    },
+)
+async def update_user_form(
+    form_update: UserFormUpdate,
+    current_user: UserOut = Depends(get_current_user),
+    service: UserFormService = Depends(get_user_form_service),
+):
+    try:
+        return await service.update_user_form(current_user.id, form_update)
+    except UserNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Указанные цели или аллергии не найдены: {str(e)}",
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Некорректные данные: {str(e)}",
+        )
+    except ServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ошибка при обновлении анкеты: {str(e)}",
         )

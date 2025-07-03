@@ -22,6 +22,7 @@ from app.schemas import (
     GoalOut,
     AllergyCreate,
     AllergyOut,
+    UserFormUpdate,
 )
 
 
@@ -108,3 +109,45 @@ class UserFormService:
             )
 
         await self.form_repository.delete_user_form(user_form.user_id)
+
+    async def update_user_form(
+        self, user_id: int, form_data: UserFormUpdate
+    ) -> UserFormOut:
+
+        existing_form = await self.form_repository.get_user_form(user_id)
+        if not existing_form:
+            raise EntityNotFound(
+                f"Анкета пользователя с ID={user_id} не найдена"
+            )
+
+        try:
+            base_data = form_data.model_dump(
+                exclude_unset=True, exclude={"goal_ids", "allergy_ids"}
+            )
+
+            if base_data:
+                await self.form_repository.update(
+                    db_obj=existing_form, obj_data=base_data
+                )
+
+            if form_data.goal_ids is not None:
+                current_goals = [g.id for g in existing_form.goals]
+                if set(current_goals) != set(form_data.goal_ids):
+                    await self.goal_repository.update_form_goals(
+                        user_id=user_id, goal_ids=form_data.goal_ids
+                    )
+
+            if form_data.allergy_ids is not None:
+                current_allergies = [a.id for a in existing_form.allergies]
+                if set(current_allergies) != set(form_data.allergy_ids):
+                    await self.allergy_repository.update_form_allergies(
+                        user_id=user_id, allergy_ids=form_data.allergy_ids
+                    )
+
+            updated_form = await self.form_repository.get_user_form(user_id)
+            return UserFormOut.model_validate(updated_form)
+
+        except ValueError as e:
+            raise ServiceError(f"Ошибка валидации данных: {str(e)}")
+        except IntegrityError as e:
+            raise ServiceError(f"Ошибка сохранения данных: {str(e)}")
