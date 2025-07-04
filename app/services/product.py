@@ -54,7 +54,7 @@ class ProductService:
     async def get_all_product(
         self, skip: int, limit: int, filters: Optional[dict] = None
     ) -> List[ProductOut]:
-        list_products = await self.product_repository.get_all(
+        list_products = await self.product_repository.get_all_products(
             skip=skip, limit=limit, **filters
         )
 

@@ -1,7 +1,9 @@
 from typing import Optional, List
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.types import Gender
 from app.models import Product, Tag
 from app.repositories.base import BaseRepository
 
@@ -46,3 +48,30 @@ class ProductRepository(BaseRepository[Product]):
         except Exception as e:
             await self.db.rollback()
             raise e
+
+    async def get_all_products(
+        self, skip: int = 0, limit: int = 100, **filters
+    ) -> List[Product]:
+        query = select(self.model).offset(skip).limit(limit)
+
+        if "name" in filters and filters["name"]:
+            query = query.where(self.model.name.ilike(f"%{filters['name']}%"))
+
+        if "min_price" in filters and filters["min_price"] is not None:
+            query = query.where(self.model.price >= filters["min_price"])
+
+        if "max_price" in filters and filters["max_price"] is not None:
+            query = query.where(self.model.price <= filters["max_price"])
+
+        if "min_age" in filters and filters["min_age"] is not None:
+            query = query.where(self.model.min_age >= filters["min_age"])
+
+        if "gender" in filters and filters["gender"]:
+            if filters["gender"] != Gender.ANY:
+                query = query.where(self.model.gender == filters["gender"])
+
+        if "is_active" in filters and filters["is_active"] is not None:
+            query = query.where(self.model.is_active == filters["is_active"])
+
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
