@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional, List
 
 from sqlalchemy import (
@@ -7,6 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     Enum as SAEnum,
     Numeric,
+    DATETIME,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -46,7 +48,7 @@ class Order(Base):
 
     user: Mapped["User"] = relationship(back_populates="orders")
     items: Mapped[List["OrderItem"]] = relationship(
-        back_populates="order", cascade="all, delete-orphan"
+        back_populates="order", cascade="all, delete-orphan", lazy="selectin"
     )
 
 
@@ -66,4 +68,6 @@ class OrderItem(Base):
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
 
     order: Mapped[Order] = relationship(back_populates="items")
-    product: Mapped["Product"] = relationship(back_populates="order_items")
+    product: Mapped["Product"] = relationship(
+        back_populates="order_items", lazy="selectin"
+    )

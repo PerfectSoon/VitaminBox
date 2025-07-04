@@ -16,6 +16,7 @@ class TokenType(str, Enum):
 @unique
 class OrderStatus(str, Enum):
     PENDING = "PENDING"
+    CONFIRMED = "confirmed"
     CANCELED = "CANCELED"
     COMPLETED = "COMPLETED"
 

@@ -13,6 +13,7 @@ from app.api.v1 import (
     auth_router,
     user_form_router,
     product_router,
+    order_router,
     admin_user_router,
     admin_product_router,
 )
@@ -45,6 +46,7 @@ app.include_router(
     user_form_router, prefix=f"{API_V1}/user_form", tags=["Анкета"]
 )
 app.include_router(product_router, prefix=f"{API_V1}/product", tags=["Продукт"])
+app.include_router(order_router, prefix=f"{API_V1}/order", tags=["Заказ"])
 app.include_router(
     admin_user_router, prefix=f"{API_V1}/admin", tags=["Админка: Пользователь"]
 )

@@ -15,9 +15,15 @@ from app.repositories import (
     CategoryRepository,
     TagRepository,
 )
+from app.repositories.order import OrderRepository
 from app.schemas import TokenData, UserOut
-from app.services import UserService, UserFormService
-from app.services.product import ProductService
+from app.services import (
+    UserService,
+    UserFormService,
+    ProductService,
+    OrderService,
+)
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
@@ -25,6 +31,15 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 async def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:
 
     return UserService(repository=UserRepository(db))
+
+
+async def get_order_service(
+    db: AsyncSession = Depends(get_db),
+) -> OrderService:
+    return OrderService(
+        order_repository=OrderRepository(db),
+        product_repository=ProductRepository(db),
+    )
 
 
 async def get_user_form_service(
