@@ -24,6 +24,7 @@ from app.schemas import (
     CategoryCreate,
     TagCreate,
     TagOut,
+    ProductUpdate,
 )
 
 
@@ -62,6 +63,42 @@ class ProductService:
         if not list_tags:
             raise EntityNotFound(f"Список тэгов пуст")
         return [TagOut.model_validate(tag) for tag in list_tags]
+
+    async def get_product_by_id(self, product_id: int) -> ProductOut:
+        product = await self.product_repository.get_by_id(product_id)
+
+        if not product:
+            raise EntityNotFound(f"Продукта с ID={product_id} не существует")
+
+        return ProductOut.model_validate(product)
+
+    async def update_product_by_id(
+        self, product_id: int, product_data: ProductUpdate
+    ) -> ProductOut:
+        product = await self.product_repository.get_by_id(product_id)
+
+        if not product:
+            raise EntityNotFound(f"Продукта с ID={product_id} не существует")
+
+        updated_data = product_data.model_dump(
+            exclude_unset=True, exclude={"tag_ids"}
+        )
+
+        updated_product = await self.product_repository.update(
+            product, updated_data
+        )
+        print(updated_product)
+
+        if product_data.tag_ids is not None:
+            tags = await self.tag_repository.get_by_ids(product_data.tag_ids)
+            product.tags = tags
+            await self.tag_repository.db.commit()
+
+        await self.product_repository.db.refresh(product)
+        if not updated_product:
+            raise EntityNotFound("Не удалось обновить продукт")
+
+        return ProductOut.model_validate(updated_product)
 
     async def get_all_product(
         self, skip: int, limit: int, filters: Optional[dict] = None
@@ -122,7 +159,7 @@ class ProductService:
         product = await self.product_repository.get_by_id(product_id)
 
         if not product:
-            raise UserNotFoundError(f"Продукт с id {product_id} не найден")
+            raise EntityNotFound(f"Продукт с id {product_id} не найден")
 
         await self.product_repository.delete(product_id)
 
@@ -139,3 +176,19 @@ class ProductService:
             raise EntityNotFound("Товар не найден")
 
         await self.product_repository.activate_product(product)
+
+    async def delete_category(self, category_id: int) -> None:
+        category = await self.category_repository.get_by_id(category_id)
+
+        if not category:
+            raise EntityNotFound(f"Категория с id {category_id} не найден")
+
+        await self.category_repository.delete(category_id)
+
+    async def delete_tag(self, tag_id: int) -> None:
+        tag = await self.tag_repository.get_by_id(tag_id)
+
+        if not tag:
+            raise EntityNotFound(f"Тэг с id {tag_id} не найден")
+
+        await self.tag_repository.delete(tag_id)

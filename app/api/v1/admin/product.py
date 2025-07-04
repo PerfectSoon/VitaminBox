@@ -13,6 +13,7 @@ from app.schemas import (
     TagCreate,
     CategoryOut,
     CategoryCreate,
+    ProductUpdate,
 )
 from app.services.product import ProductService
 
@@ -160,3 +161,69 @@ async def create_category(
         return await product_service.create_category(category_data)
     except EntityAlreadyExistsError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+
+
+@router.delete(
+    "/{category_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Удалить категорию",
+    responses={
+        404: {"description": "Категория не найден"},
+        204: {"description": "Категория успешно удалена"},
+    },
+)
+async def delete_category(
+    category_id: int,
+    product_service: ProductService = Depends(get_product_service),
+) -> None:
+    try:
+        await product_service.delete_category(category_id)
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+
+
+@router.delete(
+    "/{tag_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Удалить тэг",
+    responses={
+        404: {"description": "тэг не найден"},
+        204: {"description": "тэг успешно удален"},
+    },
+)
+async def delete_tag(
+    tag_id: int,
+    product_service: ProductService = Depends(get_product_service),
+) -> None:
+    try:
+        await product_service.delete_tag(tag_id)
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+
+
+@router.patch(
+    "/{product_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Обновить товар",
+    responses={
+        200: {"description": "Товар успешно обновлен"},
+        404: {"description": "Товар не найден"},
+        400: {"description": "Некорректные данные"},
+        422: {"description": "Ошибка валидации данных"},
+    },
+)
+async def update_product(
+    product_id: int,
+    product_data: ProductUpdate,
+    product_service: ProductService = Depends(get_product_service),
+) -> ProductOut:
+    try:
+        await product_service.update_product_by_id(product_id, product_data)
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )

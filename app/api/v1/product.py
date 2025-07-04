@@ -104,3 +104,24 @@ async def get_all_tags(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
         )
+
+
+@router.get(
+    "/{product_id}",
+    response_model=ProductOut,
+    summary="Получить продукт по id",
+    responses={
+        404: {"description": "Продукта с таким ID не существует"},
+        200: {"description": "Продукт получен успешно"},
+    },
+)
+async def get_product_by_id(
+    product_id: int,
+    service: ProductService = Depends(get_product_service),
+) -> ProductOut:
+    try:
+        return await service.get_product_by_id(product_id)
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
