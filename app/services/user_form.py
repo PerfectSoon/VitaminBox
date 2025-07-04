@@ -151,3 +151,19 @@ class UserFormService:
             raise ServiceError(f"Ошибка валидации данных: {str(e)}")
         except IntegrityError as e:
             raise ServiceError(f"Ошибка сохранения данных: {str(e)}")
+
+    async def delete_allergy(self, allergy_id: int) -> None:
+        allergy = await self.allergy_repository.get_by_id(allergy_id)
+
+        if not allergy:
+            raise EntityNotFound(f"Аллергия с id {allergy_id} не найден")
+
+        await self.allergy_repository.delete(allergy_id)
+
+    async def delete_goal(self, goal_id: int) -> None:
+        goal = await self.goal_repository.get_by_id(goal_id)
+
+        if not goal:
+            raise EntityNotFound(f"Тэг с id {goal_id} не найден")
+
+        await self.goal_repository.delete(goal_id)
