@@ -51,6 +51,18 @@ class ProductService:
         res = await self.tag_repository.create(tag_data.model_dump())
         return TagOut.model_validate(res)
 
+    async def get_categories(self) -> List[CategoryOut]:
+        list_cats = await self.category_repository.get_all()
+        if not list_cats:
+            raise EntityNotFound(f"Список категорий пуст")
+        return [CategoryOut.model_validate(cat) for cat in list_cats]
+
+    async def get_tags(self) -> List[TagOut]:
+        list_tags = await self.tag_repository.get_all()
+        if not list_tags:
+            raise EntityNotFound(f"Список тэгов пуст")
+        return [TagOut.model_validate(tag) for tag in list_tags]
+
     async def get_all_product(
         self, skip: int, limit: int, filters: Optional[dict] = None
     ) -> List[ProductOut]:

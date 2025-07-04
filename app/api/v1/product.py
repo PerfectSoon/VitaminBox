@@ -4,18 +4,12 @@ from fastapi import APIRouter, HTTPException, Depends, status, Query
 
 from app.core.types import Gender
 from app.exceptions.service_errors import (
-    EntityAlreadyExistsError,
-    ServiceError,
-    UserNotFoundError,
     EntityNotFound,
 )
 from app.schemas import (
     ProductOut,
-    ProductCreate,
-    TagCreate,
-    TagOut,
     CategoryOut,
-    CategoryCreate,
+    TagOut,
 )
 
 from app.api.dependencies import get_product_service
@@ -66,6 +60,46 @@ async def get_all_products(
         return await product_service.get_all_product(
             skip=skip, limit=limit, filters=filters
         )
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+
+
+@router.get(
+    "/categories",
+    response_model=List[CategoryOut],
+    summary="Получить все категории",
+    responses={
+        404: {"description": "Список категорий пуст"},
+        200: {"description": "Успешное получение списка категорий"},
+    },
+)
+async def get_all_categories(
+    service: ProductService = Depends(get_product_service),
+) -> List[CategoryOut]:
+    try:
+        return await service.get_categories()
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+
+
+@router.get(
+    "/tags",
+    response_model=List[TagOut],
+    summary="Получить все тэги",
+    responses={
+        404: {"description": "Список тэгов пуст"},
+        200: {"description": "Успешное получение списка тэгов"},
+    },
+)
+async def get_all_tags(
+    service: ProductService = Depends(get_product_service),
+) -> List[TagOut]:
+    try:
+        return await service.get_tags()
     except EntityNotFound as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
