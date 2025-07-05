@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from app.core.types import OrderStatus
 
@@ -20,10 +20,11 @@ class PromoUpdate(BaseModel):
 
 class PromoOut(PromoBase):
     id: int
-    is_available: bool
+    is_available: Optional[bool] = Field(default=True)
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
 
 class OrderItemBase(BaseModel):
@@ -35,8 +36,9 @@ class OrderItemBase(BaseModel):
 class OrderItemOut(OrderItemBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
 
 class OrderItemCreate(OrderItemBase):
@@ -55,6 +57,8 @@ class OrderOut(BaseModel):
     status: OrderStatus
     total_amount: float
     items: List[OrderItemOut]
+    promo: Optional[PromoOut] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

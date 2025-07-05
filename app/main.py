@@ -16,6 +16,7 @@ from app.api.v1 import (
     order_router,
     admin_user_router,
     admin_product_router,
+    admin_promo_router,
 )
 from app.exceptions.handler_errors import register_errors_handler
 
@@ -39,6 +40,7 @@ app.add_middleware(
 )
 
 API_V1 = "/api/v1"
+API_V1_ADMIN = "/api/v1/admin"
 app.include_router(
     auth_router, prefix=f"{API_V1}/auth", tags=["Аутентификация"]
 )
@@ -48,10 +50,13 @@ app.include_router(
 app.include_router(product_router, prefix=f"{API_V1}/product", tags=["Продукт"])
 app.include_router(order_router, prefix=f"{API_V1}/order", tags=["Заказ"])
 app.include_router(
-    admin_user_router, prefix=f"{API_V1}/admin", tags=["Админка: Пользователь"]
+    admin_user_router, prefix=f"{API_V1_ADMIN}", tags=["Админка: Пользователь"]
 )
 app.include_router(
-    admin_product_router, prefix=f"{API_V1}/admin", tags=["Админка: Продукт"]
+    admin_product_router, prefix=f"{API_V1_ADMIN}", tags=["Админка: Продукт"]
+)
+app.include_router(
+    admin_promo_router, prefix=f"{API_V1_ADMIN}", tags=["Админка: Промокод"]
 )
 
 register_errors_handler(app)

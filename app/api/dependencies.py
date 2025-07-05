@@ -14,6 +14,8 @@ from app.repositories import (
     ProductRepository,
     CategoryRepository,
     TagRepository,
+    OrderItemRepository,
+    PromoRepository,
 )
 from app.repositories.order import OrderRepository
 from app.schemas import TokenData, UserOut
@@ -22,6 +24,7 @@ from app.services import (
     UserFormService,
     ProductService,
     OrderService,
+    RecommendationService,
 )
 
 
@@ -38,7 +41,9 @@ async def get_order_service(
 ) -> OrderService:
     return OrderService(
         order_repository=OrderRepository(db),
+        order_item_repository=OrderItemRepository(db),
         product_repository=ProductRepository(db),
+        promo_repository=PromoRepository(db),
     )
 
 
@@ -60,6 +65,15 @@ def get_product_service(
         product_repository=ProductRepository(db),
         category_repository=CategoryRepository(db),
         tag_repository=TagRepository(db),
+    )
+
+
+def get_recommendation_service(
+    db: AsyncSession = Depends(get_db),
+) -> RecommendationService:
+    return RecommendationService(
+        product_repository=ProductRepository(db),
+        user_form_repository=UserFormRepository(db),
     )
 
 
