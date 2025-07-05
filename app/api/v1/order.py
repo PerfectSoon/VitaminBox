@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Optional, List
+
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from app.schemas import OrderOut, OrderItemCreate
 from app.services import OrderService
 from app.api.dependencies import get_order_service, get_current_user
@@ -19,7 +21,28 @@ async def get_cart(
     service: OrderService = Depends(get_order_service),
 ):
     try:
-        return await service.get_cart(current_user.id)
+        return await service.get_active_cart(current_user.id)
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+
+
+@router.get(
+    "/",
+    response_model=List[OrderOut],
+    summary="Получить все заказы",
+    responses={
+        404: {"description": "Список заказов пуст"},
+        200: {"description": "Успешное получение списка заказов"},
+    },
+)
+async def get_all_orders(
+    current_user: UserOut = Depends(get_current_user),
+    service: OrderService = Depends(get_order_service),
+) -> List[OrderOut]:
+    try:
+        return await service.get_confirmed_cart(current_user.id)
     except EntityNotFound as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
@@ -71,11 +94,37 @@ async def remove_from_cart(
     status_code=status.HTTP_200_OK,
 )
 async def confirm_order(
+    promo: Optional[str] = Query(None, description="Промокод"),
     current_user: UserOut = Depends(get_current_user),
     service: OrderService = Depends(get_order_service),
 ):
     try:
-        return await service.confirm_order(current_user.id)
+        return await service.confirm_order(current_user.id, promo)
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+    except ServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        )
+
+
+@router.delete(
+    "/clear",
+    response_model=OrderOut,
+    summary="Очистить корзину",
+    responses={
+        200: {"description": "Корзина успешно очищена"},
+        404: {"description": "Корзина не найдена"},
+    },
+)
+async def clear_cart(
+    current_user: UserOut = Depends(get_current_user),
+    service: OrderService = Depends(get_order_service),
+):
+    try:
+        return await service.clear_cart(current_user.id)
     except EntityNotFound as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)

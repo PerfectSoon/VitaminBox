@@ -50,6 +50,7 @@ class Order(Base):
     items: Mapped[List["OrderItem"]] = relationship(
         back_populates="order", cascade="all, delete-orphan", lazy="selectin"
     )
+    promo: Mapped[Optional["Promo"]] = relationship(lazy="selectin")
 
 
 class OrderItem(Base):

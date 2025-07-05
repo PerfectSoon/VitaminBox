@@ -8,6 +8,12 @@ class EntityNotFound(ServiceError):
         super().__init__(message)
 
 
+class OrderAtWorkError(ServiceError):
+
+    def __init__(self, message: str = "Заказ в работе"):
+        super().__init__(message)
+
+
 class UserNotFoundError(ServiceError):
 
     def __init__(self, message: str = "Пользователь не найден"):

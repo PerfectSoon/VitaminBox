@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,6 +23,17 @@ class OrderRepository(BaseRepository[Order]):
             .options(selectinload(Order.items))
         )
         return result.scalars().first()
+
+    async def get_confirmed_orders(self, user_id: int) -> List[Order]:
+        result = await self.db.execute(
+            select(Order)
+            .where(
+                Order.user_id == user_id, Order.status != OrderStatus.PENDING
+            )
+            .options(selectinload(Order.items))
+            .order_by(Order.id.desc())
+        )
+        return list(result.scalars().all())
 
     async def update_cart(
         self, order_id: int, items: list[dict], total_amount: float
