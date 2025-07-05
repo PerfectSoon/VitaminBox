@@ -15,7 +15,7 @@ from app.schemas import (
     CategoryCreate,
     ProductUpdate,
 )
-from app.services.product import ProductService
+from app.services import ProductService
 
 router = APIRouter()
 

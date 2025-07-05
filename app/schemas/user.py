@@ -17,7 +17,7 @@ class TokenData(BaseModel):
 
 
 class UserBase(BaseModel):
-    name: str = Field(..., min_length=2, max_length=50)
+    name: str = Field("Шмекит", min_length=2, max_length=50)
     email: EmailStr
 
     @field_validator("name")
