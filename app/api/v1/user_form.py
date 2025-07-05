@@ -10,17 +10,21 @@ from app.exceptions.service_errors import (
 )
 from app.schemas import (
     GoalOut,
-    GoalCreate,
-    AllergyCreate,
     AllergyOut,
     UserOut,
     UserFormCreate,
     UserFormOut,
     UserFormUpdate,
+    ProductOut,
 )
 from app.services import UserFormService
 
-from app.api.dependencies import get_user_form_service, get_current_user
+from app.api.dependencies import (
+    get_user_form_service,
+    get_current_user,
+    get_recommendation_service,
+)
+from app.services.recommendation import RecommendationService
 
 router = APIRouter()
 
@@ -164,4 +168,30 @@ async def update_user_form(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Ошибка при обновлении анкеты: {str(e)}",
+        )
+
+
+@router.get(
+    "/recommendations",
+    response_model=List[ProductOut],
+    summary="Получить рекомендации",
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "Список рекомендованных товаров"},
+        404: {
+            "description": "Анкета пользователя или подходящие товары не найдены"
+        },
+        400: {"description": "Ошибка обработки запроса"},
+        422: {"description": "Ошибка валидации параметров"},
+    },
+)
+async def get_product_recommendations(
+    current_user: UserOut = Depends(get_current_user),
+    service: RecommendationService = Depends(get_recommendation_service),
+):
+    try:
+        return await service.get_recommendations(current_user.id)
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
         )
