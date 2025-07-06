@@ -1,5 +1,5 @@
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, BackgroundTasks
 
 from app.exceptions.service_errors import (
     EntityAlreadyExistsError,
@@ -23,6 +23,7 @@ from app.api.dependencies import (
     get_user_service,
     get_current_refresh_token,
     get_current_user,
+    get_notification_service,
 )
 
 router = APIRouter()
@@ -35,10 +36,20 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
 )
 async def register_user(
-    user_in: UserCreate, service: UserService = Depends(get_user_service)
+    background_tasks: BackgroundTasks,
+    user_in: UserCreate,
+    service: UserService = Depends(get_user_service),
+    notification_service: NotificationService = Depends(
+        get_notification_service
+    ),
 ):
     try:
-        return await service.register(user_in)
+        user = await service.register(user_in)
+        background_tasks.add_task(
+            notification_service.send_reg_email, user.email, user
+        )
+
+        return user
     except EntityAlreadyExistsError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except ServiceError as e:

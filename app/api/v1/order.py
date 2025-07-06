@@ -1,10 +1,20 @@
 from typing import Optional, List
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from app.schemas import OrderOut, OrderItemCreate
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+    Query,
+    BackgroundTasks,
+)
+from app.schemas import OrderOut, OrderItemCreate, UserOut
 from app.services import OrderService
-from app.api.dependencies import get_order_service, get_current_user
-from app.schemas.user import UserOut
+from app.api.dependencies import (
+    get_order_service,
+    get_current_user,
+    get_notification_service,
+)
 from app.exceptions.service_errors import EntityNotFound, ServiceError
 
 router = APIRouter()
@@ -117,11 +127,21 @@ async def apply_promo_to_cart(
     status_code=status.HTTP_200_OK,
 )
 async def confirm_order(
+    background_tasks: BackgroundTasks,
     current_user: UserOut = Depends(get_current_user),
     service: OrderService = Depends(get_order_service),
+    notification_service: NotificationService = Depends(
+        get_notification_service
+    ),
 ):
     try:
-        return await service.confirm_order(current_user.id)
+        order = await service.confirm_order(current_user.id)
+
+        background_tasks.add_task(
+            notification_service.send_order_email, current_user.email, order
+        )
+
+        return order
     except EntityNotFound as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
