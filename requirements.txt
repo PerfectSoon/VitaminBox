@@ -21,3 +21,4 @@ dnspython>=2.0.0
 idna>=2.0.0
 python-multipart==0.0.20
 aiosqlite==0.21.0
+traceback_with_variables==2.2.0

@@ -60,6 +60,7 @@ class ProductCreate(ProductBase):
 class ProductUpdate(BaseModel):
     name: Optional[str] = Field(None, max_length=255)
     price: Optional[float] = Field(None, gt=0)
+    image_url: Optional[str] = Field(None, max_length=500)
     description: Optional[str] = Field(None, max_length=1000)
     category_id: Optional[int] = None
     tag_ids: Optional[List[int]] = None

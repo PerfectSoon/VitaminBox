@@ -88,18 +88,40 @@ async def remove_from_cart(
 
 
 @router.post(
+    "/cart/apply-promo",
+    response_model=OrderOut,
+    summary="Применить промокод к корзине",
+    status_code=status.HTTP_200_OK,
+)
+async def apply_promo_to_cart(
+    promo: str = Query(..., description="Промокод"),
+    current_user: UserOut = Depends(get_current_user),
+    service: OrderService = Depends(get_order_service),
+):
+    try:
+        return await service.apply_promo_to_order(current_user.id, promo)
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+    except ServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        )
+
+
+@router.post(
     "/cart/confirm",
     response_model=OrderOut,
     summary="Оформить заказ (подтвердить корзину)",
     status_code=status.HTTP_200_OK,
 )
 async def confirm_order(
-    promo: Optional[str] = Query(None, description="Промокод"),
     current_user: UserOut = Depends(get_current_user),
     service: OrderService = Depends(get_order_service),
 ):
     try:
-        return await service.confirm_order(current_user.id, promo)
+        return await service.confirm_order(current_user.id)
     except EntityNotFound as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)

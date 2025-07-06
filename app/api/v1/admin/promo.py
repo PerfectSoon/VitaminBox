@@ -1,13 +1,13 @@
 from typing import List
 
 from fastapi import Depends, HTTPException, status, APIRouter
-from app.api.dependencies import get_order_service
+from app.api.dependencies import get_order_service, get_current_admin
 from app.exceptions.service_errors import (
     EntityAlreadyExistsError,
     EntityNotFound,
     ServiceError,
 )
-from app.schemas import PromoOut, PromoCreate
+from app.schemas import PromoOut, PromoCreate, UserOut
 from app.services import OrderService
 
 router = APIRouter()
@@ -26,6 +26,7 @@ router = APIRouter()
 )
 async def create_promo(
     promo_data: PromoCreate,
+    admin: UserOut = Depends(get_current_admin),
     service: OrderService = Depends(get_order_service),
 ) -> PromoOut:
     try:
@@ -50,6 +51,7 @@ async def create_promo(
 )
 async def delete_promo(
     promo_id: int,
+    admin: UserOut = Depends(get_current_admin),
     service: OrderService = Depends(get_order_service),
 ):
     try:
@@ -79,6 +81,7 @@ async def delete_promo(
     },
 )
 async def get_all_promos(
+    admin: UserOut = Depends(get_current_admin),
     service: OrderService = Depends(get_order_service),
 ) -> List[PromoOut]:
 

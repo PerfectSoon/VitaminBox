@@ -1,4 +1,4 @@
-from .user import Token, TokenData, UserCreate, UserOut, UserAuth
+from .user import Token, TokenData, UserCreate, UserOut, UserAuth, AdminCreate
 from .user_form import (
     UserFormOut,
     UserFormCreate,
@@ -36,6 +36,7 @@ __all__ = [
     "UserCreate",
     "UserOut",
     "UserAuth",
+    "AdminCreate",
     "UserFormOut",
     "UserFormCreate",
     "UserFormUpdate",

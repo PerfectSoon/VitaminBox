@@ -1,8 +1,8 @@
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
+from app.core.types import UserType
 from app.database.connection import get_db
 
 from app.core.security import decode_access_token, decode_refresh_token
@@ -18,7 +18,7 @@ from app.repositories import (
     PromoRepository,
 )
 from app.repositories.order import OrderRepository
-from app.schemas import TokenData, UserOut
+from app.schemas import TokenData, UserOut, AdminCreate
 from app.services import (
     UserService,
     UserFormService,
@@ -99,3 +99,34 @@ async def get_current_user(
 ) -> UserOut:
 
     return await service.get_user(int(token_data.sub))
+
+
+async def get_current_admin(
+    current_user: UserOut = Depends(get_current_user),
+) -> UserOut:
+    if current_user.role != UserType.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Пользователь не является админом",
+        )
+
+    return current_user
+
+
+async def create_admin(db: AsyncSession) -> UserOut | None:
+    try:
+        service = UserService(repository=UserRepository(db))
+
+        admin_data = AdminCreate(
+            email="admin@admin.com",
+            password="admin123",
+            name="Админ",
+            role=UserType.ADMIN,
+        )
+
+        user_out = await service.register_admin(admin_data)
+        print(f"✅ Администратор {user_out.email} успешно создан")
+        return user_out
+
+    except Exception as e:
+        print(f"Ошибка при создании администратора: {e}")

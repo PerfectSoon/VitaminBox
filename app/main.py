@@ -1,13 +1,14 @@
 from contextlib import asynccontextmanager
-
-import uvicorn
 import logging
+import uvicorn
+import traceback_with_variables
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.dependencies import create_admin
 from app.models.base import Base
-from app.database.connection import engine
+from app.database.connection import engine, AsyncSessionLocal
 
 from app.api.v1 import (
     auth_router,
@@ -25,6 +26,14 @@ from app.exceptions.handler_errors import register_errors_handler
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    async with AsyncSessionLocal() as session:
+        try:
+            await create_admin(session)
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
     yield
     await engine.dispose()
 
@@ -61,6 +70,15 @@ app.include_router(
 
 register_errors_handler(app)
 
+
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    uvicorn.run("main:app", reload=True)
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+
+    try:
+        uvicorn.run("main:app", reload=True)
+    except Exception:
+        traceback_with_variables.print_exc()

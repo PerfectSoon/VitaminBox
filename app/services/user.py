@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from app.core.types import UserType
 from app.exceptions.service_errors import (
     UserNotFoundError,
     InvalidCredentialsError,
@@ -7,7 +8,7 @@ from app.exceptions.service_errors import (
 )
 from app.core.security import get_password_hash, verify_password
 from app.repositories import UserRepository
-from app.schemas import UserAuth, UserCreate, UserOut
+from app.schemas import UserAuth, UserCreate, UserOut, AdminCreate
 
 
 @dataclass(kw_only=True, frozen=True, slots=True)
@@ -18,13 +19,10 @@ class UserService:
         if await self.repository.get_user_by_email(user_data.email):
             raise EntityAlreadyExistsError()
         hashed = await get_password_hash(user_data.password)
-        u = await self.repository.create(
-            {
-                "email": user_data.email,
-                "name": user_data.name,
-                "hashed_password": hashed,
-            }
-        )
+        data = user_data.model_dump(exclude={"password"})
+        data["hashed_password"] = hashed
+
+        u = await self.repository.create(data)
         return UserOut.model_validate(u)
 
     async def authenticate(self, auth: UserAuth) -> UserOut:
@@ -39,4 +37,16 @@ class UserService:
         u = await self.repository.get_by_id(user_id)
         if not u:
             raise UserNotFoundError(f"ID={user_id} не найден")
+        return UserOut.model_validate(u)
+
+    async def register_admin(self, user_data: AdminCreate) -> UserOut:
+        if await self.repository.get_user_by_email(user_data.email):
+            raise EntityAlreadyExistsError()
+
+        hashed = await get_password_hash(user_data.password)
+
+        data = user_data.model_dump(exclude={"password"})
+        data["hashed_password"] = hashed
+
+        u = await self.repository.create(data)
         return UserOut.model_validate(u)
