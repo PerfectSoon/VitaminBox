@@ -1,3 +1,4 @@
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import OrderItem
@@ -13,3 +14,9 @@ class OrderItemRepository(BaseRepository[OrderItem]):
         self.db.add(item)
         await self.db.commit()
         return item
+
+    async def delete_by_order_id(self, order_id: int):
+        await self.db.execute(
+            delete(OrderItem).where(OrderItem.order_id == order_id)
+        )
+        await self.db.commit()
