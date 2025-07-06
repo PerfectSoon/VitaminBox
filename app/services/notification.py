@@ -10,7 +10,6 @@ from app.schemas import OrderOut, UserOut
 class NotificationService:
 
     async def send_reg_email(self, user_email: str, user: UserOut):
-        print("МЭНЧИК ЧЕ ЗА ДЕЛА")
         subject = "Вы успешно зарегистрировались"
         body = f"Спасибо за регистрацию - {user.name}!"
         await self._send_email(recipient=user_email, subject=subject, body=body)
@@ -32,6 +31,5 @@ class NotificationService:
 
         try:
             await send(message, hostname="mail_dev", port=1025, start_tls=False)
-            print("ЙОУ ОТПРАЛЕНО")
         except Exception as e:
             print(f"Ошибка при отправке письма: {e}")
