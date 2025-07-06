@@ -22,7 +22,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/products",
+    "/",
     response_model=ProductOut,
     status_code=status.HTTP_201_CREATED,
     summary="Создать новый товар",
@@ -83,7 +83,7 @@ async def delete_product(
 
 
 @router.patch(
-    "/{product_id}/deactivate",
+    "/deactivate/{product_id}",
     status_code=status.HTTP_200_OK,
     summary="Деактивировать товар",
     responses={
@@ -106,7 +106,7 @@ async def deactivate_product(
 
 
 @router.patch(
-    "/{product_id}/activate",
+    "/activate/{product_id}",
     status_code=status.HTTP_200_OK,
     summary="Активировать деактивированный товар",
     responses={
@@ -171,7 +171,7 @@ async def create_category(
 
 
 @router.delete(
-    "/{category_id}",
+    "/categories/{category_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Удалить категорию",
     responses={
@@ -193,7 +193,7 @@ async def delete_category(
 
 
 @router.delete(
-    "/{tag_id}",
+    "/tags/{tag_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Удалить тэг",
     responses={

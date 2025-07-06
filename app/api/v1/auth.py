@@ -11,7 +11,7 @@ from app.core.security import create_jwt
 from app.core.settings import settings
 from app.core.types import TokenType
 
-from app.services import UserService
+from app.services import UserService, NotificationService
 from app.schemas import (
     UserOut,
     UserAuth,
@@ -30,7 +30,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/register",
+    "/",
     response_model=UserOut,
     summary="Регистрация нового пользователя",
     status_code=status.HTTP_201_CREATED,

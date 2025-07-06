@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.get(
-    "/profile/{user_id}",
+    "/{user_id}",
     response_model=UserOut,
     summary="Получить профиль пользователя по его ID",
     status_code=status.HTTP_200_OK,
@@ -37,7 +37,7 @@ async def read_profile_by_id(
 
 
 @router.post(
-    "/create/goal",
+    "/goal",
     response_model=GoalOut,
     summary="Создать цель",
     status_code=status.HTTP_201_CREATED,
@@ -58,7 +58,7 @@ async def create_goal(
 
 
 @router.post(
-    "/create/allergy",
+    "/allergy",
     response_model=AllergyOut,
     summary="Создать аллергию",
     status_code=status.HTTP_201_CREATED,

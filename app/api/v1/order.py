@@ -9,7 +9,7 @@ from fastapi import (
     BackgroundTasks,
 )
 from app.schemas import OrderOut, OrderItemCreate, UserOut
-from app.services import OrderService
+from app.services import OrderService, NotificationService
 from app.api.dependencies import (
     get_order_service,
     get_current_user,

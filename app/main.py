@@ -59,13 +59,19 @@ app.include_router(
 app.include_router(product_router, prefix=f"{API_V1}/product", tags=["Продукт"])
 app.include_router(order_router, prefix=f"{API_V1}/order", tags=["Заказ"])
 app.include_router(
-    admin_user_router, prefix=f"{API_V1_ADMIN}", tags=["Админка: Пользователь"]
+    admin_user_router,
+    prefix=f"{API_V1_ADMIN}/user",
+    tags=["Админка: Пользователь"],
 )
 app.include_router(
-    admin_product_router, prefix=f"{API_V1_ADMIN}", tags=["Админка: Продукт"]
+    admin_product_router,
+    prefix=f"{API_V1_ADMIN}/product",
+    tags=["Админка: Продукт"],
 )
 app.include_router(
-    admin_promo_router, prefix=f"{API_V1_ADMIN}", tags=["Админка: Промокод"]
+    admin_promo_router,
+    prefix=f"{API_V1_ADMIN}/promo",
+    tags=["Админка: Промокод"],
 )
 
 register_errors_handler(app)
