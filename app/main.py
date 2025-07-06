@@ -6,7 +6,7 @@ import traceback_with_variables
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.dependencies import create_admin
+from app.api import create_admin
 from app.models.base import Base
 from app.database.connection import engine, AsyncSessionLocal
 
