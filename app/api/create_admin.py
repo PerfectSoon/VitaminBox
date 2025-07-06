@@ -6,7 +6,7 @@ from app.schemas import UserOut, AdminCreate
 from app.services import UserService
 
 
-async def create_admin(db: AsyncSession) -> UserOut | None:
+async def create_admin_user(db: AsyncSession) -> UserOut | None:
     try:
         service = UserService(repository=UserRepository(db))
 
