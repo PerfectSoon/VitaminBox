@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException, status, APIRouter
 
-from app.api.dependencies import get_product_service
+from app.api.dependencies import get_product_service, get_current_admin
 from app.exceptions.service_errors import (
     EntityAlreadyExistsError,
     EntityNotFound,
@@ -14,6 +14,7 @@ from app.schemas import (
     CategoryOut,
     CategoryCreate,
     ProductUpdate,
+    UserOut,
 )
 from app.services import ProductService
 
@@ -34,6 +35,7 @@ router = APIRouter()
 )
 async def create_product(
     product_data: ProductCreate,
+    admin: UserOut = Depends(get_current_admin),
     product_service: ProductService = Depends(get_product_service),
 ) -> ProductOut:
     try:
@@ -69,6 +71,7 @@ async def create_product(
 )
 async def delete_product(
     product_id: int,
+    admin: UserOut = Depends(get_current_admin),
     product_service: ProductService = Depends(get_product_service),
 ) -> None:
     try:
@@ -90,6 +93,7 @@ async def delete_product(
 )
 async def deactivate_product(
     product_id: int,
+    admin: UserOut = Depends(get_current_admin),
     product_service: ProductService = Depends(get_product_service),
 ) -> dict:
     try:
@@ -112,6 +116,7 @@ async def deactivate_product(
 )
 async def activate_product(
     product_id: int,
+    admin: UserOut = Depends(get_current_admin),
     product_service: ProductService = Depends(get_product_service),
 ) -> dict:
     try:
@@ -135,6 +140,7 @@ async def activate_product(
 )
 async def create_tag(
     tag_data: TagCreate,
+    admin: UserOut = Depends(get_current_admin),
     product_service: ProductService = Depends(get_product_service),
 ) -> TagOut:
     try:
@@ -155,6 +161,7 @@ async def create_tag(
 )
 async def create_category(
     category_data: CategoryCreate,
+    admin: UserOut = Depends(get_current_admin),
     product_service: ProductService = Depends(get_product_service),
 ) -> CategoryOut:
     try:
@@ -174,6 +181,7 @@ async def create_category(
 )
 async def delete_category(
     category_id: int,
+    admin: UserOut = Depends(get_current_admin),
     product_service: ProductService = Depends(get_product_service),
 ) -> None:
     try:
@@ -195,6 +203,7 @@ async def delete_category(
 )
 async def delete_tag(
     tag_id: int,
+    admin: UserOut = Depends(get_current_admin),
     product_service: ProductService = Depends(get_product_service),
 ) -> None:
     try:
@@ -219,6 +228,7 @@ async def delete_tag(
 async def update_product(
     product_id: int,
     product_data: ProductUpdate,
+    admin: UserOut = Depends(get_current_admin),
     product_service: ProductService = Depends(get_product_service),
 ) -> ProductOut:
     try:

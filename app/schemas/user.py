@@ -74,6 +74,10 @@ class UserCreate(UserBase):
     )
 
 
+class AdminCreate(UserCreate):
+    role: UserType
+
+
 class UserAuth(BaseModel):
     email: EmailStr
     password: str

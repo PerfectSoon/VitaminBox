@@ -1,6 +1,10 @@
 from fastapi import Depends, HTTPException, APIRouter, status
 
-from app.api.dependencies import get_user_service, get_user_form_service
+from app.api.dependencies import (
+    get_user_service,
+    get_user_form_service,
+    get_current_admin,
+)
 from app.exceptions.service_errors import (
     UserNotFoundError,
     EntityAlreadyExistsError,
@@ -20,6 +24,7 @@ router = APIRouter()
 )
 async def read_profile_by_id(
     user_id: int,
+    admin: UserOut = Depends(get_current_admin),
     service: UserService = Depends(get_user_service),
 ):
     try:
@@ -39,6 +44,7 @@ async def read_profile_by_id(
 )
 async def create_goal(
     goal_in: GoalCreate,
+    admin: UserOut = Depends(get_current_admin),
     service: UserFormService = Depends(get_user_form_service),
 ):
     try:
@@ -59,6 +65,7 @@ async def create_goal(
 )
 async def create_allergy(
     allergy_in: AllergyCreate,
+    admin: UserOut = Depends(get_current_admin),
     service: UserFormService = Depends(get_user_form_service),
 ):
     try:
