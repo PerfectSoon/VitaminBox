@@ -158,10 +158,40 @@ class OrderService:
 
         return OrderOut.model_validate(updated_order)
 
-    async def confirm_order(
-        self, user_id: int, promo_code: Optional[str] = None
+    async def apply_promo_to_order(
+        self, user_id: int, promo_code: str
     ) -> OrderOut:
+        order = await self.order_repository.get_pending_order(user_id)
 
+        if not order or not order.items:
+            raise EntityNotFound("Корзина пуста или не найдена")
+
+        if order.status != OrderStatus.PENDING:
+            raise OrderAtWorkError(
+                f"Нельзя применить промокод. Заказ {order.id} имеет статус {order.status}"
+            )
+
+        promo = await self.promo_repository.get_by_code(promo_code)
+
+        if not promo or not promo.is_available:
+            raise EntityNotFound(
+                f"Промокод '{promo_code}' не существует или недоступен"
+            )
+
+        discount_percent = Decimal(promo.discount_percent) / Decimal(100)
+        discounted_total = order.total_amount * (Decimal(1) - discount_percent)
+
+        update_data = {
+            "total_amount": discounted_total,
+            "promo_id": promo.id,
+        }
+
+        updated_order = await self.order_repository.update(order, update_data)
+        await self.promo_repository.update(promo, {"is_available": False})
+
+        return OrderOut.model_validate(updated_order)
+
+    async def confirm_order(self, user_id: int) -> OrderOut:
         order = await self.order_repository.get_pending_order(user_id)
 
         if not order or not order.items:
@@ -172,30 +202,9 @@ class OrderService:
                 f"Вы не можете подтвердить заказ. Заказ {order.id} имеет статус {order.status}"
             )
 
-        update_data = {"status": OrderStatus.CONFIRMED}
-
-        if promo_code:
-            promo = await self.promo_repository.get_by_code(promo_code)
-
-            if not promo or not promo.is_available:
-                raise EntityNotFound(
-                    f"Промокод '{promo_code}' не существует или недоступен"
-                )
-
-            discount_percent = Decimal(promo.discount_percent) / Decimal(100)
-            discounted_total = order.total_amount * (
-                Decimal(1) - discount_percent
-            )
-            update_data.update(
-                {
-                    "total_amount": discounted_total,
-                    "promo_id": promo.id,
-                }
-            )
-            await self.promo_repository.update(promo, {"is_available": False})
-
-        updated_order = await self.order_repository.update(order, update_data)
-
+        updated_order = await self.order_repository.update(
+            order, {"status": OrderStatus.CONFIRMED}
+        )
         return OrderOut.model_validate(updated_order)
 
     async def clear_cart(self, user_id: int) -> OrderOut:
