@@ -3,6 +3,7 @@ from typing import Optional, List
 from pydantic import BaseModel, Field, ConfigDict
 
 from app.core.types import OrderStatus
+from app.schemas import ProductOut
 
 
 class PromoBase(BaseModel):
@@ -30,11 +31,12 @@ class PromoOut(PromoBase):
 class OrderItemBase(BaseModel):
     product_id: int
     quantity: int = Field(default=1, gt=0)
-    price: int = Field(default=1, gt=0)
 
 
 class OrderItemOut(OrderItemBase):
     id: int
+
+    product: ProductOut
 
     model_config = ConfigDict(
         from_attributes=True,

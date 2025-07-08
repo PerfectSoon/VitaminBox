@@ -72,7 +72,6 @@ class OrderService:
                         "id": item.id,
                         "product_id": item.product_id,
                         "quantity": item.quantity + item_data.quantity,
-                        "price": item_data.price,
                     }
                 )
                 item_found = True
@@ -82,7 +81,6 @@ class OrderService:
                         "id": item.id,
                         "product_id": item.product_id,
                         "quantity": item.quantity,
-                        "price": item_data.price,
                     }
                 )
 
@@ -91,7 +89,6 @@ class OrderService:
                 {
                     "product_id": item_data.product_id,
                     "quantity": item_data.quantity,
-                    "price": item_data.price,
                 }
             )
 
@@ -129,7 +126,6 @@ class OrderService:
                             "id": item.id,
                             "product_id": item.product_id,
                             "quantity": item.quantity - 1,
-                            "price": item.price,
                         }
                     )
 
@@ -139,7 +135,6 @@ class OrderService:
                         "id": item.id,
                         "product_id": item.product_id,
                         "quantity": item.quantity,
-                        "price": item.price,
                     }
                 )
 
