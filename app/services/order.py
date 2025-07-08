@@ -72,7 +72,6 @@ class OrderService:
                         "id": item.id,
                         "product_id": item.product_id,
                         "quantity": item.quantity + item_data.quantity,
-                        "price": item_data.price,
                     }
                 )
                 item_found = True
@@ -82,7 +81,6 @@ class OrderService:
                         "id": item.id,
                         "product_id": item.product_id,
                         "quantity": item.quantity,
-                        "price": item_data.price,
                     }
                 )
 
@@ -91,7 +89,6 @@ class OrderService:
                 {
                     "product_id": item_data.product_id,
                     "quantity": item_data.quantity,
-                    "price": item_data.price,
                 }
             )
 
@@ -129,7 +126,6 @@ class OrderService:
                             "id": item.id,
                             "product_id": item.product_id,
                             "quantity": item.quantity - 1,
-                            "price": item.price,
                         }
                     )
 
@@ -139,7 +135,6 @@ class OrderService:
                         "id": item.id,
                         "product_id": item.product_id,
                         "quantity": item.quantity,
-                        "price": item.price,
                     }
                 )
 
@@ -219,11 +214,12 @@ class OrderService:
                     f"Заказ {order.id} имеет статус {order.status}"
                 )
 
-            await self.order_item_repository.delete(order.id)
+            await self.order_item_repository.delete_by_order_id(order.id)
 
             updated_order = await self.order_repository.update(
                 order, {"total_amount": 0, "promo_id": None}
             )
+            await self.order_repository.db.refresh(updated_order)
 
             return OrderOut.model_validate(updated_order)
 

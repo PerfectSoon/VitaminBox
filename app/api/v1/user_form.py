@@ -30,7 +30,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/m",
+    "/",
     response_model=UserFormOut,
     summary="Создать анкету пользователя",
     status_code=status.HTTP_201_CREATED,

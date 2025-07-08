@@ -3,6 +3,7 @@ from .user_form import UserFormService
 from .product import ProductService
 from .order import OrderService
 from .recommendation import RecommendationService
+from .notification import NotificationService
 
 __all__ = [
     "UserService",
@@ -10,4 +11,5 @@ __all__ = [
     "ProductService",
     "OrderService",
     "RecommendationService",
+    "NotificationService",
 ]

@@ -18,15 +18,15 @@ from app.repositories import (
     PromoRepository,
 )
 from app.repositories.order import OrderRepository
-from app.schemas import TokenData, UserOut, AdminCreate
+from app.schemas import TokenData, UserOut
 from app.services import (
     UserService,
     UserFormService,
     ProductService,
     OrderService,
     RecommendationService,
+    NotificationService,
 )
-
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
@@ -34,6 +34,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 async def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:
 
     return UserService(repository=UserRepository(db))
+
+
+async def get_notification_service() -> NotificationService:
+
+    return NotificationService()
 
 
 async def get_order_service(
@@ -111,22 +116,3 @@ async def get_current_admin(
         )
 
     return current_user
-
-
-async def create_admin(db: AsyncSession) -> UserOut | None:
-    try:
-        service = UserService(repository=UserRepository(db))
-
-        admin_data = AdminCreate(
-            email="admin@admin.com",
-            password="admin123",
-            name="Админ",
-            role=UserType.ADMIN,
-        )
-
-        user_out = await service.register_admin(admin_data)
-        print(f"✅ Администратор {user_out.email} успешно создан")
-        return user_out
-
-    except Exception as e:
-        print(f"Ошибка при создании администратора: {e}")
