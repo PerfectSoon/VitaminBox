@@ -6,7 +6,7 @@ import traceback_with_variables
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.create_admin import create_admin_user
+from app.api.create_admin import create_admin_user, seed_database
 from app.models.base import Base
 from app.database.connection import engine, AsyncSessionLocal
 
@@ -29,6 +29,7 @@ async def lifespan(app: FastAPI):
     async with AsyncSessionLocal() as session:
         try:
             await create_admin_user(session)
+            await seed_database(session)
             await session.commit()
         except Exception:
             await session.rollback()
