@@ -3,7 +3,7 @@ from typing import Type, TypeVar, Generic, List, Optional
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import delete, true, false
+from sqlalchemy import delete, true, false, func
 
 from app.exceptions.service_errors import ServiceError
 
@@ -36,6 +36,16 @@ class BaseRepository(Generic[T]):
                 query = query.where(col == value)
         result = await self.db.execute(query)
         return list(result.scalars().all())
+
+    async def count(self, **filters) -> int:
+        query = select(func.count()).select_from(self.model)
+        for field, value in filters.items():
+            col = getattr(self.model, field)
+            if isinstance(value, bool):
+                query = query.where(col == (true() if value else false()))
+            else:
+                query = query.where(col == value)
+        return (await self.db.execute(query)).scalar_one()
 
     async def create(self, obj_data: dict) -> T:
         db_obj = self.model(**obj_data)
