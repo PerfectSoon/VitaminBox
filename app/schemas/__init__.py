@@ -16,6 +16,7 @@ from .product_category import (
     CategoryCreate,
     TagOut,
     TagCreate,
+    ProductListResponse,
 )
 from .order import (
     OrderCreate,
@@ -60,4 +61,5 @@ __all__ = [
     "PromoOut",
     "PromoBase",
     "PromoUpdate",
+    "ProductListResponse",
 ]

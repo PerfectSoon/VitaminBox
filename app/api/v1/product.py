@@ -10,17 +10,18 @@ from app.schemas import (
     ProductOut,
     CategoryOut,
     TagOut,
+    ProductListResponse,
 )
 
 from app.api.dependencies import get_product_service
-from app.services.product import ProductService
+from app.services import ProductService
 
 router = APIRouter()
 
 
 @router.get(
     "/",
-    response_model=List[ProductOut],
+    response_model=ProductListResponse,
     summary="Получить все товары",
     responses={
         404: {"description": "Список товаров пуст"},
@@ -47,7 +48,7 @@ async def get_all_products(
     skip: int = 0,
     limit: int = 100,
     product_service: ProductService = Depends(get_product_service),
-) -> List[ProductOut]:
+) -> ProductListResponse:
     try:
         filters = {
             "name": name,

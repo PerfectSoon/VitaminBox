@@ -25,6 +25,7 @@ from app.schemas import (
     TagCreate,
     TagOut,
     ProductUpdate,
+    ProductListResponse,
 )
 
 
@@ -102,14 +103,20 @@ class ProductService:
 
     async def get_all_product(
         self, skip: int, limit: int, filters: Optional[dict] = None
-    ) -> List[ProductOut]:
+    ) -> ProductListResponse:
         list_products = await self.product_repository.get_all_products(
             skip=skip, limit=limit, **filters
         )
 
         if not list_products:
             raise EntityNotFound(f"Список продуктов пуст")
-        return [ProductOut.model_validate(prod) for prod in list_products]
+
+        total = len(list_products)
+
+        return ProductListResponse(
+            total=total,
+            products=[ProductOut.model_validate(prod) for prod in list_products]
+        )
 
     async def create_product(self, product_data: ProductCreate) -> ProductOut:
         existing = await self.product_repository.get_by_name(product_data.name)

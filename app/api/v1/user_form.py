@@ -17,14 +17,13 @@ from app.schemas import (
     UserFormUpdate,
     ProductOut,
 )
-from app.services import UserFormService
+from app.services import UserFormService, RecommendationService
 
 from app.api.dependencies import (
     get_user_form_service,
     get_current_user,
     get_recommendation_service,
 )
-from app.services.recommendation import RecommendationService
 
 router = APIRouter()
 
