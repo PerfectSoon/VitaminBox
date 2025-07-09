@@ -105,13 +105,13 @@ class ProductService:
         self, skip: int, limit: int, filters: Optional[dict] = None
     ) -> ProductListResponse:
         list_products = await self.product_repository.get_all_products(
-            skip=skip, limit=limit, **filters
+            skip=skip, limit=limit, **(filters if filters else {})
         )
 
         if not list_products:
             raise EntityNotFound(f"Список продуктов пуст")
 
-        total = len(list_products)
+        total = await self.product_repository.count()
 
         return ProductListResponse(
             total=total,
