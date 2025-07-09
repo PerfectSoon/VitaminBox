@@ -187,9 +187,10 @@ async def update_user_form(
 async def get_product_recommendations(
     current_user: UserOut = Depends(get_current_user),
     service: RecommendationService = Depends(get_recommendation_service),
+    limit: int = 10
 ):
     try:
-        return await service.get_recommendations(current_user.id)
+        return await service.get_recommendations(current_user.id, limit)
     except EntityNotFound as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
