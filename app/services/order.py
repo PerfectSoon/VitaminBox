@@ -52,7 +52,7 @@ class OrderService:
             self,
             user_id: int,
             product_id: int,
-            action: str = "add",
+            action: str = "add",  # "add" | "remove" | "remove_all" | "set"
             quantity: int = 1,
     ) -> OrderOut:
         order = await self.get_active_cart(user_id)
@@ -60,13 +60,13 @@ class OrderService:
         if order.status != OrderStatus.PENDING:
             raise OrderAtWorkError(f"Заказ {order.id} имеет статус {order.status}")
 
-
-        if action != "remove":
+        if action not in ("remove", "remove_all"):
             product = await self.product_repository.get_by_id(product_id)
             if not product:
                 raise EntityNotFound("Продукт не найден")
 
-        if action == "remove":
+
+        if action in ("remove", "remove_all"):
             if not any(item.product_id == product_id for item in order.items):
                 raise EntityNotFound(f"Товар {product_id} отсутствует в корзине")
 
@@ -82,6 +82,8 @@ class OrderService:
                     new_quantity += quantity
                 elif action == "remove":
                     new_quantity = max(0, item.quantity - quantity)
+                elif action == "remove_all":
+                    new_quantity = 0
                 elif action == "set":
                     new_quantity = max(0, quantity)
                 else:
