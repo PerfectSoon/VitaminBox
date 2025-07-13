@@ -18,6 +18,7 @@ from app.schemas import (
     UserCreate,
     Token,
     TokenData,
+    UserUpdate,
 )
 from app.api.dependencies import (
     get_user_service,
@@ -140,3 +141,62 @@ async def refresh_access_token(
         access_token=new_access_token,
         refresh_token=new_refresh_token,
     )
+
+
+@router.patch(
+    "/",
+    response_model=UserOut,
+    summary="Частичное обновление пользователя",
+    responses={
+        200: {"description": "Успешное частичное обновление"},
+        400: {"description": "Некорректные данные"},
+        404: {"description": "Пользователь не найден"},
+    },
+)
+async def partial_update_user(
+    user_data: UserUpdate,
+    current_user: UserOut = Depends(get_current_user),
+    service: UserService = Depends(get_user_service),
+):
+    try:
+        return await service.update_user(
+            user_id=current_user.id, user_data=user_data, partial=True
+        )
+    except UserNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        )
+
+
+@router.put(
+    "/",
+    response_model=UserOut,
+    summary="Полное обновление пользователя",
+    responses={
+        200: {"description": "Успешное полное обновление"},
+        400: {"description": "Некорректные данные"},
+        404: {"description": "Пользователь не найден"},
+    },
+)
+async def full_update_user(
+    user_data: UserUpdate,
+    current_user: UserOut = Depends(get_current_user),
+    service: UserService = Depends(get_user_service),
+):
+
+    try:
+        return await service.update_user(
+            user_id=current_user.id, user_data=user_data, partial=False
+        )
+    except UserNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        )
