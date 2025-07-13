@@ -3,7 +3,8 @@ MIGRATION_MSG ?= "auto migration"
 
 help:
 	@echo "Usage:"
-	@echo "  make up                   # start containers, Build & start containers"
+	@echo "  make up                   # start containers"
+	@echo "  make build                   # Build & start containers"
 	@echo "  make down                 # Stop & remove containers"
 	@echo "  make migrate-create MSG=\"Your message\""
 	@echo "                           # Create a new Alembic migration"
@@ -12,6 +13,9 @@ help:
 	@echo "  make test                 # Run pytest in the backend container"
 
 up:
+	docker-compose up
+
+build:
 	docker-compose up -d --build
 
 down:
