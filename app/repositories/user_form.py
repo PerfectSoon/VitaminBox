@@ -1,4 +1,4 @@
-from typing import List, Type
+from typing import List
 
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 
 from app.models import UserForm, Goal, Allergy
-from app.repositories.base import BaseRepository, T
+from app.repositories.base import BaseRepository
 
 
 class UserFormRepository(BaseRepository[UserForm]):
@@ -16,14 +16,18 @@ class UserFormRepository(BaseRepository[UserForm]):
     async def get_user_form(self, user_id: int) -> UserForm:
         try:
             res = await self.db.execute(
-                select(UserForm).where(UserForm.user_id == user_id).
-                options(
+                select(UserForm)
+                .where(UserForm.user_id == user_id)
+                .options(
                     selectinload(UserForm.allergies),
-                    selectinload(UserForm.goals)
-            ))
+                    selectinload(UserForm.goals),
+                )
+            )
             return res.scalar_one_or_none()
         except SQLAlchemyError as e:
-            raise RuntimeError(f"Ошибка при получении анкеты пользователя: {e}")
+            raise RuntimeError(
+                f"Ошибка при получении анкеты пользователя: {e}"
+            )
 
     async def create_user_form(
         self,
@@ -52,7 +56,7 @@ class UserFormRepository(BaseRepository[UserForm]):
             raise e
 
     async def delete_user_form(self, user_id: int) -> None:
-        query = await self.db.execute(
+        await self.db.execute(
             delete(UserForm).where(UserForm.user_id == user_id)
         )
         try:

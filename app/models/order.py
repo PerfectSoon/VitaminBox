@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional, List
 
 from sqlalchemy import (
@@ -8,7 +7,6 @@ from sqlalchemy import (
     ForeignKey,
     Enum as SAEnum,
     Numeric,
-    DATETIME,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

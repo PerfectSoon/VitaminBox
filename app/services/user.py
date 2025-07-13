@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-from app.core.types import UserType
 from app.exceptions.service_errors import (
     UserNotFoundError,
     InvalidCredentialsError,

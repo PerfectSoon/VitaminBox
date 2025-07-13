@@ -12,12 +12,16 @@ class NotificationService:
     async def send_reg_email(self, user_email: str, user: UserOut):
         subject = "Вы успешно зарегистрировались"
         body = f"Спасибо за регистрацию - {user.name}!"
-        await self._send_email(recipient=user_email, subject=subject, body=body)
+        await self._send_email(
+            recipient=user_email, subject=subject, body=body
+        )
 
     async def send_order_email(self, user_email: str, order: OrderOut):
         subject = "Подтверждение заказа"
         body = f"Спасибо за ваш заказ №{order.id}!\n\nДетали заказа: {order}"
-        await self._send_email(recipient=user_email, subject=subject, body=body)
+        await self._send_email(
+            recipient=user_email, subject=subject, body=body
+        )
 
     @staticmethod
     async def _send_email(recipient: str, subject: str, body: str):
@@ -30,6 +34,8 @@ class NotificationService:
         message.set_content(body)
 
         try:
-            await send(message, hostname="mail_dev", port=1025, start_tls=False)
+            await send(
+                message, hostname="mail_dev", port=1025, start_tls=False
+            )
         except Exception as e:
             print(f"Ошибка при отправке письма: {e}")

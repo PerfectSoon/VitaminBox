@@ -41,7 +41,9 @@ async def create_product(
     try:
         return await product_service.create_product(product_data)
     except EntityAlreadyExistsError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(e)
+        )
     except EntityNotFound as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
@@ -146,7 +148,9 @@ async def create_tag(
     try:
         return await product_service.create_tag(tag_data)
     except EntityAlreadyExistsError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(e)
+        )
 
 
 @router.post(
@@ -167,7 +171,9 @@ async def create_category(
     try:
         return await product_service.create_category(category_data)
     except EntityAlreadyExistsError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(e)
+        )
 
 
 @router.delete(

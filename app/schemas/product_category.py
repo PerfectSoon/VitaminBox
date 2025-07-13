@@ -51,9 +51,11 @@ class ProductOut(ProductBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class ProductListResponse(BaseModel):
     total: int
     products: List[ProductOut]
+
 
 class ProductCreate(ProductBase):
     category_id: int

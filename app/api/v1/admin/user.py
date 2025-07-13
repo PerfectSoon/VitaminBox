@@ -50,7 +50,9 @@ async def create_goal(
     try:
         return await service.create_goal(goal_in)
     except EntityAlreadyExistsError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(e)
+        )
     except ServiceError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
@@ -71,7 +73,9 @@ async def create_allergy(
     try:
         return await service.create_allergy(allergy_in)
     except EntityAlreadyExistsError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(e)
+        )
     except ServiceError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)

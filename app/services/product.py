@@ -4,7 +4,6 @@ from typing import List, Optional
 from sqlalchemy.exc import IntegrityError
 
 from app.exceptions.service_errors import (
-    UserNotFoundError,
     EntityAlreadyExistsError,
     ServiceError,
     EntityNotFound,
@@ -56,13 +55,13 @@ class ProductService:
     async def get_categories(self) -> List[CategoryOut]:
         list_cats = await self.category_repository.get_all()
         if not list_cats:
-            raise EntityNotFound(f"Список категорий пуст")
+            raise EntityNotFound("Список категорий пуст")
         return [CategoryOut.model_validate(cat) for cat in list_cats]
 
     async def get_tags(self) -> List[TagOut]:
         list_tags = await self.tag_repository.get_all()
         if not list_tags:
-            raise EntityNotFound(f"Список тэгов пуст")
+            raise EntityNotFound("Список тэгов пуст")
         return [TagOut.model_validate(tag) for tag in list_tags]
 
     async def get_product_by_id(self, product_id: int) -> ProductOut:
@@ -109,13 +108,15 @@ class ProductService:
         )
 
         if not list_products:
-            raise EntityNotFound(f"Список продуктов пуст")
+            raise EntityNotFound("Список продуктов пуст")
 
         total = await self.product_repository.count()
 
         return ProductListResponse(
             total=total,
-            products=[ProductOut.model_validate(prod) for prod in list_products]
+            products=[
+                ProductOut.model_validate(prod) for prod in list_products
+            ],
         )
 
     async def create_product(self, product_data: ProductCreate) -> ProductOut:

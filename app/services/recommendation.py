@@ -12,14 +12,20 @@ class RecommendationService:
     product_repository: ProductRepository
     user_form_repository: UserFormRepository
 
-    async def get_recommendations(self, user_id: int, limit: int) -> List[ProductOut]:
+    async def get_recommendations(
+        self, user_id: int, limit: int
+    ) -> List[ProductOut]:
         user_form = await self.user_form_repository.get_user_form(user_id)
 
         if not user_form:
-            raise EntityNotFound(f"Анкета пользователя с id {user_id} не найдена")
+            raise EntityNotFound(
+                f"Анкета пользователя с id {user_id} не найдена"
+            )
 
         filters = {"is_active": True}
-        products = await self.product_repository.get_all_products(limit=limit, **filters)
+        products = await self.product_repository.get_all_products(
+            limit=limit, **filters
+        )
 
         allergy_names = {a.name.lower() for a in user_form.allergies}
         goal_names = {g.name.lower() for g in user_form.goals}
@@ -31,7 +37,10 @@ class RecommendationService:
             if product.min_age and product.min_age > user_form.age:
                 continue
 
-            if product.gender != Gender.ANY and product.gender != user_form.gender:
+            if (
+                product.gender != Gender.ANY
+                and product.gender != user_form.gender
+            ):
                 continue
 
             if not product_tag_names.isdisjoint(allergy_names):
@@ -45,4 +54,7 @@ class RecommendationService:
         if not recommended:
             raise EntityNotFound("Рекомендации не найдены")
 
-        return [ProductOut.model_validate(prod, from_attributes=True) for prod in recommended]
+        return [
+            ProductOut.model_validate(prod, from_attributes=True)
+            for prod in recommended
+        ]

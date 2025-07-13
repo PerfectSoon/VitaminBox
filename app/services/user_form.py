@@ -43,7 +43,7 @@ class UserFormService:
     async def get_allergies(self) -> List[AllergyOut]:
         list_allergies = await self.allergy_repository.get_all()
         if not list_allergies:
-            raise EntityNotFound(f"Список аллергий пуст")
+            raise EntityNotFound("Список аллергий пуст")
         return [
             AllergyOut.model_validate(allergy) for allergy in list_allergies
         ]
@@ -51,7 +51,7 @@ class UserFormService:
     async def get_goals(self) -> List[GoalOut]:
         list_goals = await self.goal_repository.get_all()
         if not list_goals:
-            raise EntityNotFound(f"Список целей пуст")
+            raise EntityNotFound("Список целей пуст")
         return [GoalOut.model_validate(goal) for goal in list_goals]
 
     async def create_goal(self, goal_data: GoalCreate) -> GoalOut:
@@ -111,24 +111,24 @@ class UserFormService:
         await self.form_repository.delete_user_form(user_form.user_id)
 
     async def update_user_form(
-            self, user_id: int, form_data: UserFormUpdate
+        self, user_id: int, form_data: UserFormUpdate
     ) -> UserFormOut:
 
         existing_form = await self.form_repository.get_user_form(user_id)
         if not existing_form:
-            raise EntityNotFound(f"Анкета пользователя с ID={user_id} не найдена")
+            raise EntityNotFound(
+                f"Анкета пользователя с ID={user_id} не найдена"
+            )
 
         try:
 
             base_data = form_data.model_dump(
-                exclude_unset=True,
-                exclude={"goal_ids", "allergy_ids"}
+                exclude_unset=True, exclude={"goal_ids", "allergy_ids"}
             )
 
             if base_data:
                 await self.form_repository.update(
-                    db_obj=existing_form,
-                    obj_data=base_data
+                    db_obj=existing_form, obj_data=base_data
                 )
 
             if form_data.goal_ids is not None:
@@ -137,10 +137,8 @@ class UserFormService:
 
                 if current_goal_ids != new_goal_ids:
                     await self.goal_repository.update_form_goals(
-                        user_id=user_id,
-                        goal_ids=list(new_goal_ids)
+                        user_id=user_id, goal_ids=list(new_goal_ids)
                     )
-
 
             if form_data.allergy_ids is not None:
                 current_allergy_ids = {a.id for a in existing_form.allergies}
@@ -148,13 +146,13 @@ class UserFormService:
 
                 if current_allergy_ids != new_allergy_ids:
                     await self.allergy_repository.update_form_allergies(
-                        user_id=user_id,
-                        allergy_ids=list(new_allergy_ids)
+                        user_id=user_id, allergy_ids=list(new_allergy_ids)
                     )
 
-
             updated_form = await self.form_repository.get_user_form(user_id)
-            return UserFormOut.model_validate(updated_form, from_attributes=True)
+            return UserFormOut.model_validate(
+                updated_form, from_attributes=True
+            )
 
         except SQLAlchemyError as e:
             raise RuntimeError(f"Ошибка при обновлении анкеты: {e}") from e

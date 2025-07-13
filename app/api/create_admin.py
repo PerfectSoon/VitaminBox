@@ -76,7 +76,9 @@ async def create_categories(
 
             category = Category(
                 name=name,
-                description=fake.paragraph() if random.random() > 0.3 else None,
+                description=(
+                    fake.paragraph() if random.random() > 0.3 else None
+                ),
             )
             categories.append(category)
             db.add(category)
@@ -115,7 +117,9 @@ async def create_products(
                     fake.random_number(digits=3, fix_len=True)
                     + fake.random_number(digits=2) / 100
                 ),
-                description=fake.paragraph() if random.random() > 0.2 else None,
+                description=(
+                    fake.paragraph() if random.random() > 0.2 else None
+                ),
                 image_url=fake.image_url() if random.random() > 0.5 else None,
                 min_age=random.choice([0, 3, 6, 12, 16, 18]),
                 gender=random.choice(list(Gender)),

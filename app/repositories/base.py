@@ -58,7 +58,7 @@ class BaseRepository(Generic[T]):
             raise ServiceError(f"Некорректные поля: {str(e)}")
         except IntegrityError as e:
             raise ServiceError(f"Ошибка целостности: {str(e)}")
-        except:
+        except Exception:
             await self.db.rollback()
             raise
 

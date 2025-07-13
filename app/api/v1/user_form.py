@@ -42,7 +42,9 @@ async def create_user_form(
     try:
         return await service.create_user_form(current_user.id, user_form_in)
     except EntityAlreadyExistsError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(e)
+        )
     except ServiceError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
@@ -187,7 +189,7 @@ async def update_user_form(
 async def get_product_recommendations(
     current_user: UserOut = Depends(get_current_user),
     service: RecommendationService = Depends(get_recommendation_service),
-    limit: int = 10
+    limit: int = 10,
 ):
     try:
         return await service.get_recommendations(current_user.id, limit)

@@ -1,4 +1,4 @@
-from sqlalchemy import select, insert
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -12,7 +12,9 @@ class UserRepository(BaseRepository[User]):
 
     async def get_user_by_email(self, email: str) -> User | None:
         try:
-            res = await self.db.execute(select(User).where(User.email == email))
+            res = await self.db.execute(
+                select(User).where(User.email == email)
+            )
             return res.scalar_one_or_none()
         except SQLAlchemyError as e:
             raise RuntimeError(f"Ошибка при получении пользователя: {e}")

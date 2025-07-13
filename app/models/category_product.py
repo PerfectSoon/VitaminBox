@@ -73,7 +73,9 @@ class Product(Base):
     description: Mapped[Optional[str]] = mapped_column(
         String(1000), nullable=True
     )
-    image_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    image_url: Mapped[Optional[str]] = mapped_column(
+        String(500), nullable=True
+    )
     min_age: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     gender: Mapped[Gender] = mapped_column(
         SAEnum(Gender), default=Gender.ANY, nullable=False

@@ -36,7 +36,9 @@ async def create_jwt(
     return jwt.encode(to_encode, settings.SECRET_KEY)
 
 
-async def _decode_token_base(token: str, expected_type: TokenType) -> TokenData:
+async def _decode_token_base(
+    token: str, expected_type: TokenType
+) -> TokenData:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY)
         token_type = payload.get("token_type")
