@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Optional, List
+from typing import List
 
 from app.exceptions.service_errors import (
     EntityNotFound,
@@ -48,107 +48,84 @@ class OrderService:
             raise EntityNotFound("Подтвержденных заказов не найдено")
         return [OrderOut.model_validate(order) for order in list_orders]
 
-    async def add_item_to_cart(
-        self, user_id: int, item_data: OrderItemCreate
+    async def modify_cart_item(
+            self,
+            user_id: int,
+            product_id: int,
+            action: str = "add",
+            quantity: int = 1,
     ) -> OrderOut:
         order = await self.get_active_cart(user_id)
 
         if order.status != OrderStatus.PENDING:
-            raise OrderAtWorkError(
-                f"Заказ {order.id} имеет статус {order.status}"
-            )
+            raise OrderAtWorkError(f"Заказ {order.id} имеет статус {order.status}")
 
-        product = await self.product_repository.get_by_id(item_data.product_id)
-        if not product:
-            raise EntityNotFound("Продукт не найден")
+
+        if action != "remove":
+            product = await self.product_repository.get_by_id(product_id)
+            if not product:
+                raise EntityNotFound("Продукт не найден")
+
+        if action == "remove":
+            if not any(item.product_id == product_id for item in order.items):
+                raise EntityNotFound(f"Товар {product_id} отсутствует в корзине")
 
         updated_items = []
         item_found = False
 
         for item in order.items:
-            if item.product_id == item_data.product_id:
-                updated_items.append(
-                    {
-                        "id": item.id,
-                        "product_id": item.product_id,
-                        "quantity": item.quantity + item_data.quantity,
-                    }
-                )
+            if item.product_id == product_id:
                 item_found = True
-            else:
-                updated_items.append(
-                    {
+                new_quantity = item.quantity
+
+                if action == "add":
+                    new_quantity += quantity
+                elif action == "remove":
+                    new_quantity = max(0, item.quantity - quantity)
+                elif action == "set":
+                    new_quantity = max(0, quantity)
+                else:
+                    raise ValueError(f"Неизвестное действие: {action}")
+
+                if new_quantity > 0:
+                    updated_items.append({
                         "id": item.id,
                         "product_id": item.product_id,
-                        "quantity": item.quantity,
-                    }
-                )
+                        "quantity": new_quantity,
+                    })
+            else:
+                updated_items.append({
+                    "id": item.id,
+                    "product_id": item.product_id,
+                    "quantity": item.quantity,
+                })
 
-        if not item_found:
-            updated_items.append(
-                {
-                    "product_id": item_data.product_id,
-                    "quantity": item_data.quantity,
-                }
-            )
 
-        total_amount = 0
-        for item in updated_items:
-            prod = await self.product_repository.get_by_id(item["product_id"])
-            if not prod:
-                raise EntityNotFound(
-                    f"Продукт с id {item['product_id']} не найден"
-                )
-            total_amount += item["quantity"] * prod.price
+        if not item_found and action == "add":
+            updated_items.append({
+                "product_id": product_id,
+                "quantity": quantity,
+            })
 
-        updated_order = await self.order_repository.update_cart(
-            order_id=order.id, items=updated_items, total_amount=total_amount
+        product_ids = {item["product_id"] for item in updated_items}
+        products = await self.product_repository.get_by_ids(list(product_ids))
+        products_map = {p.id: p for p in products}
+
+
+        missing_ids = product_ids - products_map.keys()
+        if missing_ids:
+            raise EntityNotFound(f"Товары с id {missing_ids} не найдены")
+
+
+        total_amount = sum(
+            item["quantity"] * products_map[item["product_id"]].price
+            for item in updated_items
         )
 
-        return OrderOut.model_validate(updated_order)
-
-    async def remove_item_from_cart(
-        self, user_id: int, product_id: int
-    ) -> OrderOut:
-        order = await self.get_active_cart(user_id)
-
-        if order.status != OrderStatus.PENDING:
-            raise OrderAtWorkError(
-                f"Заказ {order.id} имеет статус {order.status}"
-            )
-
-        updated_items = []
-        for item in order.items:
-            if item.product_id == product_id:
-                if item.quantity > 1:
-                    updated_items.append(
-                        {
-                            "id": item.id,
-                            "product_id": item.product_id,
-                            "quantity": item.quantity - 1,
-                        }
-                    )
-
-            else:
-                updated_items.append(
-                    {
-                        "id": item.id,
-                        "product_id": item.product_id,
-                        "quantity": item.quantity,
-                    }
-                )
-
-        total_amount = 0
-        for item in updated_items:
-            prod = await self.product_repository.get_by_id(item["product_id"])
-            if not prod:
-                raise EntityNotFound(
-                    f"Продукт с id {item['product_id']} не найден"
-                )
-            total_amount += item["quantity"] * prod.price
-
         updated_order = await self.order_repository.update_cart(
-            order_id=order.id, items=updated_items, total_amount=total_amount
+            order_id=order.id,
+            items=updated_items,
+            total_amount=total_amount,
         )
 
         return OrderOut.model_validate(updated_order)
@@ -243,5 +220,5 @@ class OrderService:
     async def get_all_promos(self) -> List[PromoOut]:
         list_promos = await self.promo_repository.get_all()
         if not list_promos:
-            raise EntityNotFound(f"Список промокодов пуст")
+            raise EntityNotFound("Список промокодов пуст")
         return [PromoOut.model_validate(promo) for promo in list_promos]

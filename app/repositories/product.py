@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import List
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -74,4 +74,13 @@ class ProductRepository(BaseRepository[Product]):
             query = query.where(self.model.is_active == filters["is_active"])
 
         result = await self.db.execute(query)
+        return list(result.scalars().all())
+
+    async def get_by_ids(self, ids: List[int]) -> List[Product]:
+        if not ids:
+            return []
+
+        result = await self.db.execute(
+            select(Product).where(Product.id.in_(ids))
+        )
         return list(result.scalars().all())

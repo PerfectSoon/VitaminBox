@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import List
 
 from fastapi import (
     APIRouter,
@@ -8,7 +8,10 @@ from fastapi import (
     Query,
     BackgroundTasks,
 )
-from app.schemas import OrderOut, OrderItemCreate, UserOut
+from fastapi.encoders import jsonable_encoder
+from starlette.responses import JSONResponse
+
+from app.schemas import OrderOut, UserOut
 from app.services import OrderService, NotificationService
 from app.api.dependencies import (
     get_order_service,
@@ -60,42 +63,47 @@ async def get_all_orders(
 
 
 @router.post(
-    "/cart/items",
-    response_model=OrderOut,
-    summary="Добавить товар в корзину",
-    status_code=status.HTTP_201_CREATED,
-)
-async def add_to_cart(
-    item: OrderItemCreate,
-    current_user: UserOut = Depends(get_current_user),
-    service: OrderService = Depends(get_order_service),
-):
-    try:
-        return await service.add_item_to_cart(current_user.id, item)
-    except ServiceError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-        )
-
-
-@router.delete(
     "/cart/items/{product_id}",
     response_model=OrderOut,
-    summary="Удалить товар из корзины",
-    status_code=status.HTTP_200_OK,
+    summary="Управление товарами в корзине",
+    responses={
+        200: {"description": "Товар успешно обновлен/удален"},
+        201: {"description": "Товар успешно добавлен"},
+        400: {"description": "Неверный запрос"},
+        404: {"description": "Товар не найден"},
+    },
 )
-async def remove_from_cart(
-    product_id: int,
-    current_user: UserOut = Depends(get_current_user),
-    service: OrderService = Depends(get_order_service),
+async def modify_cart(
+        product_id: int,
+        action: str = Query(default="add", description="Действие: add, remove или set"),
+        quantity: int = Query(default=1, description="Количество (требуется для add/set)"),
+        current_user: UserOut = Depends(get_current_user),
+        service: OrderService = Depends(get_order_service),
 ):
     try:
-        return await service.remove_item_from_cart(current_user.id, product_id)
-    except EntityNotFound as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        result = await service.modify_cart_item(
+            user_id=current_user.id,
+            product_id=product_id,
+            action=action,
+            quantity=quantity,
         )
 
+        status_code = status.HTTP_201_CREATED if action == "add" else status.HTTP_200_OK
+        return JSONResponse(
+            content=jsonable_encoder(result),
+            status_code=status_code,
+        )
+
+    except EntityNotFound as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+    except (ServiceError, ValueError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
 @router.post(
     "/cart/apply-promo",
